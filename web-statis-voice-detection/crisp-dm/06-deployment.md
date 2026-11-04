@@ -66,10 +66,10 @@ Saat menerima file rekaman audio baru dari pengguna, sistem menjalankan alur pem
 Aplikasi web interaktif dibangun menggunakan framework Python **Flask** pada `frontend/app.py` dan antarmuka web modern pada `frontend/templates/index.html`.
 
 ### Fitur Antarmuka Web:
-1. **🎙️ Voice Langsung (Mikrofon):** Perekaman audio langsung melalui Web Audio API browser pada frekuensi sampling 16 kHz.
-2. **📁 Upload File Audio (.wav):** Pemeriksaan file audio eksternal yang diunggah pengguna.
-3. **⚡ Pengujian Sampel Dataset:** Fitur pengujian cepat untuk memutar dan menguji file contoh asli dan manipulasi AI dari dataset.
-4. **📊 Visualisasi Terintegrasi:** Menampilkan grafik gelombang waktu (*waveform*), spektrogram Mel, dan skor keyakinan (*confidence score*) per segmen 5 detik.
+1. **Voice Langsung (Mikrofon):** Perekaman audio langsung melalui Web Audio API browser pada frekuensi sampling 16 kHz.
+2. **Upload File Audio (.wav):** Pemeriksaan file audio eksternal yang diunggah pengguna.
+3. **Pengujian Sampel Dataset:** Fitur pengujian cepat untuk memutar dan menguji file contoh asli dan manipulasi AI dari dataset.
+4. **Visualisasi Terintegrasi:** Menampilkan grafik gelombang waktu (*waveform*), spektrogram Mel, dan skor keyakinan (*confidence score*) per segmen 5 detik.
 
 ### Cara Menjalankan Aplikasi Web Flask:
 ```powershell

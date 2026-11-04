@@ -6,7 +6,7 @@ Selamat datang di repositori dokumentasi web statis resmi **Proyek Sains Data (P
 
 ---
 
-### 👥 Identitas Tim Pengembang (Kelompok 4)
+### Identitas Tim Pengembang (Kelompok 4)
 
 Proyek ini disusun dan dikembangkan oleh mahasiswa Program Studi Teknik Informatika angkatan 2024:
 
@@ -18,7 +18,7 @@ Proyek ini disusun dan dikembangkan oleh mahasiswa Program Studi Teknik Informat
 
 ---
 
-### 📌 Ringkasan Eksekutif Proyek
+### Ringkasan Eksekutif Proyek
 
 ```
                                   ALUR KERJA PROYEK KELOMPOK 4
@@ -39,7 +39,7 @@ Proyek ini bertujuan membedakan **Suara Manusia Asli (`asli_human = 0`)** dan **
 
 ---
 
-### 📑 Struktur Dokumentasi (6 Tahap CRISP-DM)
+### Struktur Dokumentasi (6 Tahap CRISP-DM)
 
 Dokumentasi web statis ini terbagi ke dalam 6 bab utama sesuai tahapan CRISP-DM:
 

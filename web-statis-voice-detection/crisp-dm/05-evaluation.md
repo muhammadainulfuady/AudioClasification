@@ -66,9 +66,9 @@ Merujuk kembali pada kriteria kesuksesan yang ditetapkan pada Tahap 1 (*Business
 
 | Kriteria Target | Nilai Target Awal | Nilai yang Dicapai | Status Evaluasi |
 | :--- | :---: | :---: | :---: |
-| **Akurasi Data Uji (*Test Accuracy*)** | $\ge 95{,}00\%$ | **$98{,}75\%$** (RF) / **$99{,}58\%$** (SVM) | ✅ **TERPENUHI (Melampaui Target)** |
-| **F1-Score Model** | $\ge 95{,}00\%$ | **$98{,}73\%$** | ✅ **TERPENUHI (Melampaui Target)** |
-| **Area Under ROC Curve (ROC-AUC)** | $\ge 0{,}980$ | **$0{,}9994$** | ✅ **TERPENUHI (Melampaui Target)** |
-| **Integritas Pembagian Data (*Zero Leakage*)** | Bebas Kebocoran | **$100\%$ Group Split by File** | ✅ **TERPENUHI (Bebas Leakage)** |
+| **Akurasi Data Uji (*Test Accuracy*)** | $\ge 95{,}00\%$ | **$98{,}75\%$** (RF) / **$99{,}58\%$** (SVM) | **TERPENUHI (Melampaui Target)** |
+| **F1-Score Model** | $\ge 95{,}00\%$ | **$98{,}73\%$** | **TERPENUHI (Melampaui Target)** |
+| **Area Under ROC Curve (ROC-AUC)** | $\ge 0{,}980$ | **$0{,}9994$** | **TERPENUHI (Melampaui Target)** |
+| **Integritas Pembagian Data (*Zero Leakage*)** | Bebas Kebocoran | **$100\%$ Group Split by File** | **TERPENUHI (Bebas Leakage)** |
 
 Dengan demikian, seluruh kriteria kesuksesan teknis dan bisnis telah **terpenuhi secara tuntas dan valid**, sehingga model siap masuk ke tahap penerapan (*Deployment*).
