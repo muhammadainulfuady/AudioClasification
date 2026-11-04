@@ -1,14 +1,3 @@
 # Table of contents
-# Learn more at https://jupyterbook.org/customize/toc.html
-
 format: jb-book
-root: intro
-parts:
-  - caption: Metodologi CRISP-DM
-    chapters:
-      - file: crisp-dm/01-business-understanding
-      - file: crisp-dm/02-data-understanding
-      - file: crisp-dm/03-data-preparation
-      - file: crisp-dm/04-modeling
-      - file: crisp-dm/05-evaluation
-      - file: crisp-dm/06-deployment
+root: voices
