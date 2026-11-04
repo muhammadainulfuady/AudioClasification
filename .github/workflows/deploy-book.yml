@@ -27,10 +27,15 @@ jobs:
 
       - name: Build Jupyter Book
         run: |
-          jupyter-book build web-statis-voice-detection
+          cd web-statis-voice-detection
+          jupyter-book build .
+          touch _build/html/.nojekyll
+          echo "=== Menampilkan file yang berhasil di-build ==="
+          ls -la _build/html
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: web-statis-voice-detection/_build/html
+          publish_dir: ./web-statis-voice-detection/_build/html
+          enable_jekyll: false
