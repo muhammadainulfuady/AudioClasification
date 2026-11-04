@@ -68,7 +68,7 @@ def ekstrak_fitur_segmen(y_seg, sr, f0_seg):
         'delta_mfcc_mean': float(np.mean(delta_mfcc)),
         'delta_mfcc_std': float(np.std(delta_mfcc)),
     }
-    for i in range(13):
+    for i in range(13):   
         fitur[f'mfcc_{i+1}_mean'] = float(np.mean(mfcc[i]))
         fitur[f'mfcc_{i+1}_std'] = float(np.std(mfcc[i]))
     return fitur
