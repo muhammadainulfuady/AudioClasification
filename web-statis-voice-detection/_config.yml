@@ -22,8 +22,8 @@ execute:
 
 # Information about where the book exists on the web
 repository:
-  url: https://github.com/muhammadainulfuady/voice-detection
-  path_to_book: .
+  url: https://github.com/muhammadainulfuady/AudioClasification
+  path_to_book: web-statis-voice-detection
   branch: main
 
 # Add GitHub buttons to your book
