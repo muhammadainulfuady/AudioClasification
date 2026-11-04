@@ -1,12 +1,13 @@
 # Catatan evaluasi dalam proyek sains data pertemuan ke-10
 
-### Klasifikasi adio untuk deteksi suara manusia asli dan manipulasi AI
+### Klasifikasi audio untuk deteksi suara manusia asli dan manipulasi AI
 
 1. Saat ekstraksi fitur maka silahkan di ekstraksi semuanya
 
 - Setelah di ekstraksi fiturnya maka seleksi fitur yang telah di ekstrak tadi
 - Maka setelah di seleksi jumlah kolom fitur akan berubah dan menyesuaikan dengan yang telah kita seleksi tadi
 - Data yang di olah adalah file terbaru hasil seleksi fiturnya
+- Jadi nanti ada 2 output file satu ada file csv u
 
 2. Membuat sebuah wireframe
 
