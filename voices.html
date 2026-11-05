@@ -330,6 +330,7 @@ document.write(`
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tujuan-bisnis-business-objectives">1.2 Tujuan Bisnis (<em>Business Objectives</em>)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rumusan-masalah-sains-data-data-mining-goals">1.3 Rumusan Masalah Sains Data (<em>Data Mining Goals</em>)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kriteria-kesuksesan-success-criteria">1.4 Kriteria Kesuksesan (<em>Success Criteria</em>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wireframe-alur-penggunaan-sistem-klasifikasi-audio">1.5 Wireframe &amp; Alur Penggunaan Sistem Klasifikasi Audio</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#tahap-2-data-understanding-pemahaman-eksplorasi-data-audio">Tahap 2: <em>Data Understanding</em> (Pemahaman &amp; Eksplorasi Data Audio)</a><ul class="visible nav section-nav flex-column">
@@ -462,6 +463,20 @@ document.write(`
 <li><p><strong>Akurasi &amp; <em>F1-Score</em> pada Data Uji (<em>Test Set</em>) <span class="math notranslate nohighlight">\(\ge 95\%\)</span></strong> pada segmen berdurasi 5 detik.</p></li>
 <li><p><strong>Pencegahan <em>Data Leakage</em>:</strong> Pembagian data <em>Training</em> (80%) dan <em>Testing</em> (20%) wajib dilakukan pada level <strong><code class="docutils literal notranslate"><span class="pre">file_induk</span></code></strong> (bukan mengacak segmen secara bebas), sehingga segmen-segmen dari rekaman yang sama tidak pernah bocor di antara data latih dan data uji.</p></li>
 </ul>
+</section>
+<section id="wireframe-alur-penggunaan-sistem-klasifikasi-audio">
+<h2>1.5 Wireframe &amp; Alur Penggunaan Sistem Klasifikasi Audio<a class="headerlink" href="#wireframe-alur-penggunaan-sistem-klasifikasi-audio" title="Link to this heading">#</a></h2>
+<p>Sistem klasifikasi audio ini dirancang berbasis <strong>unggah berkas (<em>file-based audio testing</em>)</strong>, <strong>BUKAN</strong> sistem panggilan telepon atau streaming audio langsung secara <em>real-time</em>.</p>
+<p><strong>Alur Penggunaan Aplikasi (End-to-End Workflow):</strong></p>
+<ol class="arabic simple">
+<li><p><strong>Pengguna Membuka Web App:</strong> Mengakses antarmuka web Flask di browser (<code class="docutils literal notranslate"><span class="pre">http://127.0.0.1:5000/</span></code>).</p></li>
+<li><p><strong>Pengguna Mengunggah File Audio:</strong> Memasukkan file rekaman suara (<code class="docutils literal notranslate"><span class="pre">.wav</span></code> atau <code class="docutils literal notranslate"><span class="pre">.mp3</span></code> durasi 5–30 detik) atau memilih sampel audio yang tersedia.</p></li>
+<li><p><strong>Preprocessing &amp; Ekstraksi Fitur (Di Balik Layar):</strong> Sistem otomatis melakukan normalisasi, segmentasi per jendela 5 detik, serta ekstraksi dan seleksi <strong>20 Fitur Akustik Terbaik</strong>. Pengguna tidak perlu melakukan preprocessing manual.</p></li>
+<li><p><strong>Klasifikasi Cerdas:</strong> Model <em>Random Forest</em> yang telah dilatih pada dataset fitur terseleksi (<code class="docutils literal notranslate"><span class="pre">file_seleksi_fitur.csv</span></code>) melakukan voting probabilitas keaslian pada setiap segmen.</p></li>
+<li><p><strong>Penyajian Hasil:</strong> Website menampilkan hasil keputusan secara jelas (<strong><code class="docutils literal notranslate"><span class="pre">Human</span> <span class="pre">Voice</span></code></strong> atau <strong><code class="docutils literal notranslate"><span class="pre">AI</span> <span class="pre">Generated</span> <span class="pre">Voice</span></code></strong>), persentase <em>confidence score</em>, serta visualisasi spektrogram dan komparasi fitur tanpa membebani pengguna dengan metrik evaluasi teknis.</p></li>
+</ol>
+<p>Berikut adalah ilustrasi wireframe antarmuka sistem yang dikembangkan:</p>
+<p><img alt="Wireframe Sistem Klasifikasi Audio" src="_images/wireframe_sistem_klasifikasi.png" /></p>
 </section>
 </section>
 <hr class="docutils" />
@@ -2377,6 +2392,14 @@ TABEL PERINGKAT 20 FITUR PALING BERPENGARUH (DARI TOTAL 48 FITUR)
 
 <span class="n">plt</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+
+<span class="c1"># SIMPAN DATASET HASIL EKSTRAKSI &amp; SELEKSI FITUR (Sesuai Ketentuan Poin 5 &amp; 6 PROMT.md)</span>
+<span class="k">for</span> <span class="n">folder_tujuan</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">'../hasil_ekstraksi'</span><span class="p">,</span> <span class="s1">'../../hasil_ekstraksi'</span><span class="p">,</span> <span class="s1">'../data/hasil_ekstraksi'</span><span class="p">]:</span>
+    <span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">folder_tujuan</span><span class="p">,</span> <span class="n">exist_ok</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">df_5s</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_tujuan</span><span class="p">,</span> <span class="s1">'file_ekstraksi.csv'</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">df_seleksi</span> <span class="o">=</span> <span class="n">df_5s</span><span class="p">[</span><span class="n">kolom_meta</span> <span class="o">+</span> <span class="n">fitur_terpilih</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">df_seleksi</span><span class="o">.</span><span class="n">to_csv</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder_tujuan</span><span class="p">,</span> <span class="s1">'file_seleksi_fitur.csv'</span><span class="p">),</span> <span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s1">'Dataset file_ekstraksi.csv dan file_seleksi_fitur.csv berhasil disimpan di folder hasil_ekstraksi/'</span><span class="p">)</span>
 </pre></div>
 </div>
 </div>
@@ -3388,6 +3411,7 @@ File Uji 2 (AI)   : audio_084.wav -&gt; Prediksi: Suara Manipulasi AI (AI-Genera
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#tujuan-bisnis-business-objectives">1.2 Tujuan Bisnis (<em>Business Objectives</em>)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#rumusan-masalah-sains-data-data-mining-goals">1.3 Rumusan Masalah Sains Data (<em>Data Mining Goals</em>)</a></li>
 <li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#kriteria-kesuksesan-success-criteria">1.4 Kriteria Kesuksesan (<em>Success Criteria</em>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#wireframe-alur-penggunaan-sistem-klasifikasi-audio">1.5 Wireframe &amp; Alur Penggunaan Sistem Klasifikasi Audio</a></li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#tahap-2-data-understanding-pemahaman-eksplorasi-data-audio">Tahap 2: <em>Data Understanding</em> (Pemahaman &amp; Eksplorasi Data Audio)</a><ul class="visible nav section-nav flex-column">
