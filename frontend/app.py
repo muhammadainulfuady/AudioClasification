@@ -19,7 +19,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'main', 'model_voice_rf_5s.pkl')
 DATA_DIR = os.path.join(BASE_DIR, 'data', 'dataset_audio_kaggle')
 
-# Muat paket model (.pkl) saat server dijalankan
+# Muat paket model (.pkl) berbasis fitur terseleksi saat server dijalankan
 paket_model = joblib.load(MODEL_PATH)
 rf_model = paket_model['model']
 scaler = paket_model['scaler']
@@ -27,16 +27,15 @@ kolom_fitur = paket_model['kolom_fitur']
 TARGET_SR = paket_model.get('sr', 16000)
 DURASI_SEGMEN = paket_model.get('durasi_segmen', 5)
 LABEL_MAP = paket_model.get('label_map', {
-    0: 'Suara Manusia Asli (Human Voice)',
-    1: 'Suara Manipulasi AI (AI-Generated Voice)'
+    0: 'Human Voice',
+    1: 'AI Generated Voice'
 })
-METRICS = paket_model.get('metrics', {})
 MEAN_ASLI = paket_model.get('mean_asli', {})
 MEAN_AI = paket_model.get('mean_ai', {})
 
 
 def ekstrak_fitur_segmen(y_seg, sr, f0_seg):
-    """Mengekstrak 48 fitur audio dari 1 segmen suara berdurasi 5 detik."""
+    """Mengekstrak fitur audio Librosa dari 1 segmen suara berdurasi 5 detik."""
     rms = librosa.feature.rms(y=y_seg)[0]
     zcr = librosa.feature.zero_crossing_rate(y=y_seg)[0]
     silence_ratio = float(np.mean(rms < 0.01) * 100.0)
@@ -121,8 +120,8 @@ def buat_visualisasi_prediksi(y_audio, sr, proba_segmen, nama_sumber):
     jml_seg = len(proba_segmen)
     x_pos = np.arange(jml_seg)
     seg_labels = [f'Seg {i+1}\n({i*5}-{(i+1)*5}s)' for i in range(jml_seg)]
-    axes[2].bar(x_pos - 0.18, proba_segmen[:, 0] * 100, width=0.35, color='#2563eb', label='Asli Human (0)')
-    axes[2].bar(x_pos + 0.18, proba_segmen[:, 1] * 100, width=0.35, color='#dc2626', label='AI Manipulasi (1)')
+    axes[2].bar(x_pos - 0.18, proba_segmen[:, 0] * 100, width=0.35, color='#2563eb', label='Human Voice (0)')
+    axes[2].bar(x_pos + 0.18, proba_segmen[:, 1] * 100, width=0.35, color='#dc2626', label='AI Generated Voice (1)')
     axes[2].set_xticks(x_pos)
     axes[2].set_xticklabels(seg_labels, fontsize=8)
     axes[2].set_ylim(0, 115)
@@ -140,7 +139,7 @@ def buat_visualisasi_prediksi(y_audio, sr, proba_segmen, nama_sumber):
 
 
 def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False):
-    """Memproses array audio, memotong per 5 detik, dan menjalankan prediksi Random Forest."""
+    """Memproses sinyal audio, membagi per segmen 5 detik, dan menjalankan inferensi model."""
     if y_raw.ndim > 1:
         y_raw = np.mean(y_raw, axis=1)
     y_raw = y_raw.astype(np.float32)
@@ -150,14 +149,13 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
     else:
         y_audio = y_raw
 
-    # Jika berasal dari mikrofon langsung, pangkas hening di awal/akhir dan sesuaikan level RMS
+    # Jika berasal dari mikrofon langsung, sesuaikan level energi RMS
     if is_mic:
         y_trimmed, _ = librosa.effects.trim(y_audio, top_db=28)
         if len(y_trimmed) > TARGET_SR:
             y_audio = y_trimmed
         rms_curr = float(np.sqrt(np.mean(y_audio**2)))
         if rms_curr > 1e-4:
-            # Kalibrasi RMS agar setara dengan rata-rata energi rekaman dataset (~0.023)
             y_audio = y_audio * (0.023 / rms_curr)
             y_audio = np.clip(y_audio, -1.0, 1.0)
 
@@ -183,6 +181,7 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
         f0_seg = f0_all[int(idx * total_f0 / jumlah_segmen) : int((idx + 1) * total_f0 / jumlah_segmen)]
         d_fitur = ekstrak_fitur_segmen(y_seg, TARGET_SR, f0_seg)
         list_fitur_dict.append(d_fitur)
+        # Ambil hanya fitur yang terpilih oleh model (Top-20 Features)
         list_fitur_df.append([d_fitur[k] for k in kolom_fitur])
 
     X_input = scaler.transform(np.array(list_fitur_df))
@@ -197,13 +196,13 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
             'segmen_ke': idx + 1,
             'rentang_waktu': f'{idx*5} - {(idx+1)*5} detik',
             'prediksi_label': lbl_seg,
-            'prediksi_teks': 'Manusia Asli' if lbl_seg == 0 else 'Manipulasi AI',
+            'prediksi_teks': 'Human Voice' if lbl_seg == 0 else 'AI Generated Voice',
             'prob_asli': round(float(prob[0]) * 100, 2),
             'prob_ai': round(float(prob[1]) * 100, 2)
         })
 
     # Rata-rata fitur penting untuk ditampilkan di tabel perbandingan
-    fitur_utama = ['mfcc_8_mean', 'mfcc_11_mean', 'mfcc_7_mean', 'mfcc_4_mean', 'skewness', 'f0_std', 'rms_mean']
+    fitur_utama = [f for f in ['mfcc_8_mean', 'mfcc_11_mean', 'mfcc_7_mean', 'mfcc_8_std', 'mfcc_4_mean', 'skewness', 'f0_std'] if f in kolom_fitur]
     perbandingan_fitur = []
     for nf in fitur_utama:
         nilai_input = float(np.mean([d[nf] for d in list_fitur_dict]))
@@ -234,14 +233,15 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
 
 @app.route('/')
 def index():
-    # Siapkan daftar contoh file dari dataset (terutama dari data uji)
+    # Siapkan daftar contoh file dari dataset
     sampel_asli = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'asli_human')) if f.endswith('.wav')])[:15]
     sampel_ai = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'ai_manipulasi')) if f.endswith('.wav')])[:15]
+    # Sesuai poin 4 PROMT.md: tidak menampilkan akurasi/metrik model pada halaman pengujian
     return render_template(
         'index.html',
-        metrics=METRICS,
         sampel_asli=sampel_asli,
-        sampel_ai=sampel_ai
+        sampel_ai=sampel_ai,
+        jumlah_fitur=len(kolom_fitur)
     )
 
 
@@ -280,7 +280,20 @@ def predict():
         nama_file = file_obj.filename or ('Rekaman_Mikrofon.wav' if is_mic else 'Upload_Audio.wav')
 
         audio_bytes = file_obj.read()
-        y_raw, sr_in = sf.read(io.BytesIO(audio_bytes), dtype='float32')
+        try:
+            y_raw, sr_in = sf.read(io.BytesIO(audio_bytes), dtype='float32')
+        except Exception:
+            # Fallback menggunakan librosa load jika format butuh backend alternatif
+            import tempfile
+            ext = os.path.splitext(nama_file)[1] or '.wav'
+            with tempfile.NamedTemporaryFile(suffix=ext, delete=False) as tmp:
+                tmp.write(audio_bytes)
+                tmp_path = tmp.name
+            try:
+                y_raw, sr_in = librosa.load(tmp_path, sr=None, mono=True)
+            finally:
+                if os.path.exists(tmp_path):
+                    os.remove(tmp_path)
 
         hasil = analisis_audio_array(y_raw, sr_in, nama_sumber=nama_file, is_mic=is_mic)
         return jsonify(hasil)

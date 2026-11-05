@@ -3,35 +3,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Deteksi Suara Manusia Asli vs Manipulasi AI (Random Forest 5s)</title>
+    <title>Voice Authenticity Detector — Human Voice vs AI Generated Voice</title>
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons (Open-Source Professional Icons) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased selection:bg-blue-600 selection:text-white">
 
-    <!-- Header -->
-    <header class="border-b border-slate-800 bg-slate-900/80 backdrop-blur sticky top-0 z-20">
-        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <!-- Header Aplikasi -->
+    <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 py-3.5 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
             <div>
-                <h1 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2">
-                    <span class="inline-block w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Voice Authenticity Detector — PSD
+                <h1 class="text-xl md:text-2xl font-bold text-white flex items-center gap-2.5">
+                    <span class="p-1.5 rounded-lg bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                        <i data-lucide="shield-check" class="w-5 h-5"></i>
+                    </span>
+                    Voice Authenticity Detector
                 </h1>
-                <p class="text-xs md:text-sm text-slate-400">
-                    Deteksi Suara Manusia Asli (<code class="text-blue-400">asli_human=0</code>) vs Manipulasi AI (<code class="text-rose-400">ai_manipulasi=1</code>) berbasis Segmen 5 Detik &amp; Random Forest
+                <p class="text-xs md:text-sm text-slate-400 mt-0.5">
+                    Sistem Deteksi Keaslian Suara (<span class="text-blue-400 font-medium">Human Voice</span> vs <span class="text-rose-400 font-medium">AI Generated Voice</span>) — Metode CRISP-DM
                 </p>
             </div>
+            <!-- Status Badge Sistem (Sesuai Ketentuan: Tidak menampilkan metrik evaluasi/akurasi pada halaman pengujian) -->
             <div class="flex flex-wrap gap-2 text-xs">
-                <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg">
-                    <span class="text-slate-400">Akurasi Uji:</span>
-                    <span class="font-bold text-emerald-400 ml-1">{{ metrics.accuracy }}%</span>
+                <div class="bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-slate-300">
+                    <i data-lucide="filter" class="w-3.5 h-3.5 text-blue-400"></i>
+                    <span>Pipeline: <strong class="text-white">{{ jumlah_fitur }} Fitur Terseleksi</strong></span>
                 </div>
-                <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg">
-                    <span class="text-slate-400">F1-Score:</span>
-                    <span class="font-bold text-blue-400 ml-1">{{ metrics.f1_score }}%</span>
-                </div>
-                <div class="bg-slate-800 border border-slate-700 px-3 py-1.5 rounded-lg">
-                    <span class="text-slate-400">Model:</span>
-                    <span class="font-bold text-amber-300 ml-1">model_voice_rf_5s.pkl</span>
+                <div class="bg-slate-800/80 border border-slate-700/80 px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-slate-300">
+                    <i data-lucide="cpu" class="w-3.5 h-3.5 text-emerald-400"></i>
+                    <span>Model: <strong class="text-white">Random Forest (5s)</strong></span>
                 </div>
             </div>
         </div>
@@ -39,27 +41,60 @@
 
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- 3 Metode Input Suara -->
+        <!-- 3 Metode Input Audio (Bukan Streaming/Panggilan Real-Time) -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-            <!-- Panel 1: Rekam Suara Langsung (Mikrofon) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
+            <!-- Panel 1: Unggah File Audio (Utama) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg hover:border-slate-700 transition">
                 <div>
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800 px-2.5 py-0.5 rounded">1. Voice Langsung (Mikrofon)</span>
-                        <span id="micTimer" class="font-mono text-sm text-slate-400">00.0s</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-blue-400 bg-blue-950/60 border border-blue-800/70 px-2.5 py-0.5 rounded">
+                            <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+                            1. Unggah File Audio
+                        </span>
                     </div>
-                    <h2 class="text-lg font-bold text-white mb-1">Rekam Suara Anda</h2>
-                    <p class="text-xs text-slate-400 mb-4">
-                        Rekam suara minimal <strong>5 detik</strong>. Audio otomatis dikonversi ke WAV <code>16.000 Hz</code> dan dianalisis per segmen 5 detik.
+                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Unggah Berkas Rekaman</h2>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        Pilih file audio format <code class="text-blue-300">.wav</code> atau <code class="text-blue-300">.mp3</code> (durasi 5–30 detik). Sistem akan otomatis melakukan preprocessing dan klasifikasi.
+                    </p>
+
+                    <label class="block">
+                        <span class="sr-only">Pilih file audio</span>
+                        <input type="file" id="fileInput" accept=".wav,.mp3,audio/wav,audio/mpeg" onchange="previewUploadFile()"
+                            class="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 mb-3 cursor-pointer border border-slate-800 rounded-lg bg-slate-950/50" />
+                    </label>
+                    <audio id="uploadAudioPreview" controls class="w-full h-9 hidden mb-3"></audio>
+                </div>
+
+                <button onclick="kirimFileUpload()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm">
+                    <i data-lucide="play" class="w-4 h-4"></i>
+                    Analisis File Audio
+                </button>
+            </div>
+
+            <!-- Panel 2: Rekam Suara Langsung (Mikrofon) -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg hover:border-slate-700 transition">
+                <div>
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800/70 px-2.5 py-0.5 rounded">
+                            <i data-lucide="mic" class="w-3.5 h-3.5"></i>
+                            2. Input Mikrofon
+                        </span>
+                        <span id="micTimer" class="font-mono text-xs text-slate-400">00.0s</span>
+                    </div>
+                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Rekam Suara Pengguna</h2>
+                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
+                        Rekam suara Anda minimal <strong>5 detik</strong>. Browser otomatis mengonversi ke WAV 16.000 Hz sebelum dikirim ke pipeline klasifikasi.
                     </p>
 
                     <div class="flex gap-2 mb-3">
-                        <button id="btnStartRec" onclick="mulaiRekam()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
-                            🎙️ Mulai Rekam
+                        <button id="btnStartRec" onclick="mulaiRekam()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-1.5">
+                            <i data-lucide="mic" class="w-4 h-4"></i>
+                            Mulai Rekam
                         </button>
-                        <button id="btnStopRec" onclick="berhentiRekam()" disabled class="flex-1 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
-                            ⏹️ Stop &amp; Cek
+                        <button id="btnStopRec" onclick="berhentiRekam()" disabled class="flex-1 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-semibold py-2.5 px-3 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-1.5">
+                            <i data-lucide="square" class="w-4 h-4"></i>
+                            Stop &amp; Analisis
                         </button>
                     </div>
                     <p id="micStatus" class="text-xs text-slate-400 italic mb-2">Klik "Mulai Rekam" lalu berbicara selama minimal 5 detik.</p>
@@ -70,49 +105,31 @@
                 </div>
             </div>
 
-            <!-- Panel 2: Upload File WAV -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
-                <div>
-                    <div class="mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-blue-400 bg-blue-950/60 border border-blue-800 px-2.5 py-0.5 rounded">2. Upload File Audio (.wav)</span>
-                    </div>
-                    <h2 class="text-lg font-bold text-white mb-1">Unggah File Rekaman (.wav)</h2>
-                    <p class="text-xs text-slate-400 mb-4">
-                        Pilih file <code>.wav</code> berdurasi 5–30 detik dari komputer Anda untuk diuji oleh model Random Forest.
-                    </p>
-
-                    <input type="file" id="fileInput" accept=".wav,audio/wav" onchange="previewUploadFile()"
-                        class="block w-full text-xs text-slate-300 file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 mb-3 cursor-pointer" />
-                    <audio id="uploadAudioPreview" controls class="w-full h-9 hidden mb-3"></audio>
-                </div>
-
-                <button onclick="kirimFileUpload()" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
-                    🔍 Analisis File WAV
-                </button>
-            </div>
-
             <!-- Panel 3: Uji Cepat Sampel Dataset -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg">
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg hover:border-slate-700 transition">
                 <div>
                     <div class="mb-2">
-                        <span class="text-xs font-semibold uppercase tracking-wider text-amber-400 bg-amber-950/60 border border-amber-800 px-2.5 py-0.5 rounded">3. Uji Sampel Dataset</span>
+                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400 bg-amber-950/60 border border-amber-800/70 px-2.5 py-0.5 rounded">
+                            <i data-lucide="folder-check" class="w-3.5 h-3.5"></i>
+                            3. Sampel Dataset
+                        </span>
                     </div>
-                    <h2 class="text-lg font-bold text-white mb-1">Cek Sampel Asli vs AI</h2>
-                    <p class="text-xs text-slate-400 mb-3">
-                        Pilih contoh file 30 detik dari folder dataset untuk mendengarkan suaranya dan menguji ketepatan deteksi.
+                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Cek Sampel Dataset</h2>
+                    <p class="text-xs text-slate-400 mb-3 leading-relaxed">
+                        Pilih sampel audio dari dataset (Human vs AI) untuk mendengarkan karakteristik suara dan memvalidasi ketepatan model.
                     </p>
 
                     <div class="grid grid-cols-2 gap-2 mb-2">
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Pilih Kelas:</label>
-                            <select id="selectKelas" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white">
-                                <option value="asli_human">Manusia Asli (0)</option>
-                                <option value="ai_manipulasi">Manipulasi AI (1)</option>
+                            <label class="block text-xs text-slate-400 mb-1">Kategori Audio:</label>
+                            <select id="selectKelas" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                                <option value="asli_human">Human Voice (0)</option>
+                                <option value="ai_manipulasi">AI Generated (1)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Pilih File (.wav):</label>
-                            <select id="selectFile" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white">
+                            <label class="block text-xs text-slate-400 mb-1">Pilih Berkas:</label>
+                            <select id="selectFile" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
                                 {% for f in sampel_asli %}
                                 <option value="{{ f }}">{{ f }}</option>
                                 {% endfor %}
@@ -123,124 +140,196 @@
                     <audio id="sampleAudioPreview" controls class="w-full h-9 mt-2 mb-3"></audio>
                 </div>
 
-                <button onclick="ujiSampelDataset()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 px-4 rounded-lg transition text-sm">
-                    ⚡ Uji Sampel Ini
+                <button onclick="ujiSampelDataset()" class="w-full bg-amber-600 hover:bg-amber-500 text-white font-semibold py-2.5 px-4 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-2 shadow-sm">
+                    <i data-lucide="check-circle" class="w-4 h-4"></i>
+                    Uji Sampel Dataset
                 </button>
             </div>
 
         </div>
 
-        <!-- Indikator Loading -->
-        <div id="loadingBox" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-6 text-center">
-            <div class="inline-block w-7 h-7 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-2"></div>
-            <p class="text-sm text-slate-300 font-medium">Sedang memotong segmen @ 5 detik, mengekstrak 48 fitur Librosa, dan menjalankan prediksi Random Forest...</p>
+        <!-- Indikator Loading Proses Backend -->
+        <div id="loadingBox" class="hidden bg-slate-900 border border-slate-800 rounded-xl p-6 text-center shadow-lg">
+            <div class="inline-block w-8 h-8 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-3"></div>
+            <p class="text-sm text-slate-200 font-medium">Memproses sinyal suara...</p>
+            <p class="text-xs text-slate-400 mt-1">Sistem sedang membagi segmen 5 detik, mengekstrak fitur akustik terpilih, dan menjalankan inferensi model Random Forest.</p>
         </div>
 
-        <!-- Kotak Pesan Error -->
-        <div id="errorBox" class="hidden bg-rose-950/70 border border-rose-700 text-rose-200 rounded-xl p-4 text-sm"></div>
+        <!-- Kotak Notifikasi Error -->
+        <div id="errorBox" class="hidden bg-rose-950/70 border border-rose-700 text-rose-200 rounded-xl p-4 text-xs md:text-sm flex items-start gap-2.5">
+            <i data-lucide="alert-triangle" class="w-5 h-5 text-rose-400 flex-shrink-0 mt-0.5"></i>
+            <span id="errorMessage"></span>
+        </div>
 
-        <!-- Panel Hasil Deteksi -->
+        <!-- Panel Hasil Klasifikasi Otomatis -->
         <div id="resultContainer" class="hidden space-y-6">
 
-            <!-- Ringkasan Keputusan Utama -->
+            <!-- Card Keputusan Klasifikasi Utama -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
-                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4 mb-5">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-5 mb-5">
                     <div>
-                        <span class="text-xs uppercase tracking-wider text-slate-400">Hasil Deteksi Akhir (Voting Segmen 5 Detik)</span>
-                        <h2 id="resPrediksiNama" class="text-2xl md:text-3xl font-extrabold mt-1">-</h2>
-                        <p id="resMetaInfo" class="text-xs text-slate-400 mt-1">-</p>
+                        <span class="text-xs uppercase tracking-wider text-slate-400 font-semibold block">Hasil Klasifikasi Audio</span>
+                        <div id="badgeHasilContainer" class="flex items-center gap-3 mt-1.5">
+                            <span id="resIconStatus" class="p-2 rounded-xl"></span>
+                            <div>
+                                <h2 id="resPrediksiNama" class="text-2xl md:text-3xl font-extrabold text-white">-</h2>
+                                <p id="resPrediksiSub" class="text-xs text-slate-400 mt-0.5">-</p>
+                            </div>
+                        </div>
+                        <p id="resMetaInfo" class="text-xs text-slate-400 mt-3 flex items-center gap-1.5 text-slate-400">
+                            <i data-lucide="info" class="w-3.5 h-3.5"></i>
+                            <span id="resMetaInfoText">-</span>
+                        </p>
                     </div>
-                    <div class="text-left md:text-right">
-                        <span class="text-xs text-slate-400 block">Tingkat Keyakinan (Confidence)</span>
-                        <span id="resConfidenceUtama" class="text-3xl font-black text-emerald-400">0%</span>
+                    <div class="bg-slate-950/80 border border-slate-800 p-4 rounded-xl text-left md:text-right min-w-[180px]">
+                        <span class="text-xs text-slate-400 block font-medium">Tingkat Keyakinan</span>
+                        <span id="resConfidenceUtama" class="text-3xl font-black">0%</span>
+                        <span class="text-[11px] text-slate-400 block mt-0.5">Confidence Score</span>
                     </div>
                 </div>
 
-                <!-- Progress Bar Perbandingan Probabilitas -->
+                <!-- Progress Bar Probabilitas Klasifikasi -->
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-lg">
-                        <div class="flex justify-between text-xs font-semibold mb-1.5">
-                            <span class="text-blue-400">🧑 Probabilitas Suara Manusia Asli (Label 0)</span>
-                            <span id="barTextAsli" class="text-blue-300">0%</span>
+                        <div class="flex justify-between text-xs font-semibold mb-1.5 items-center">
+                            <span class="text-blue-400 flex items-center gap-1.5">
+                                <i data-lucide="user-check" class="w-4 h-4"></i>
+                                Probabilitas Human Voice (Label 0)
+                            </span>
+                            <span id="barTextAsli" class="text-blue-300 font-mono">0%</span>
                         </div>
-                        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
                             <div id="barFillAsli" class="bg-blue-500 h-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
 
                     <div class="bg-slate-950/70 border border-slate-800 p-4 rounded-lg">
-                        <div class="flex justify-between text-xs font-semibold mb-1.5">
-                            <span class="text-rose-400">🤖 Probabilitas Suara Manipulasi AI (Label 1)</span>
-                            <span id="barTextAI" class="text-rose-300">0%</span>
+                        <div class="flex justify-between text-xs font-semibold mb-1.5 items-center">
+                            <span class="text-rose-400 flex items-center gap-1.5">
+                                <i data-lucide="bot" class="w-4 h-4"></i>
+                                Probabilitas AI Generated Voice (Label 1)
+                            </span>
+                            <span id="barTextAI" class="text-rose-300 font-mono">0%</span>
                         </div>
-                        <div class="w-full bg-slate-800 h-3 rounded-full overflow-hidden">
+                        <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
                             <div id="barFillAI" class="bg-rose-500 h-full transition-all duration-500" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Grafik Matplotlib (Waveform + Mel-Spectrogram + Confidence Segmen) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
-                <h3 class="text-base font-bold text-white mb-3">📊 Visualisasi Sinyal Audio &amp; Skor Keyakinan per Segmen 5 Detik (Matplotlib)</h3>
-                <div class="bg-white rounded-lg p-2 overflow-x-auto">
-                    <img id="resPlotImg" src="" alt="Visualisasi Prediksi Audio" class="w-full h-auto rounded" />
+            <!-- Visualisasi Waveform, Mel-Spectrogram, & Confidence Segmen -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-sm md:text-base font-bold text-white flex items-center gap-2">
+                        <i data-lucide="activity" class="w-4 h-4 text-purple-400"></i>
+                        Visualisasi Sinyal &amp; Spektrogram Audio
+                    </h3>
+                    <span class="text-xs text-slate-400">Resolusi 16.000 Hz</span>
+                </div>
+                <div class="bg-slate-950 border border-slate-800 rounded-lg p-2.5 flex justify-center">
+                    <img id="resPlotImg" alt="Visualisasi Spektrogram dan Segmentasi Audio" class="w-full max-w-5xl rounded" />
                 </div>
             </div>
 
-            <!-- Tabel Rincian Segmen 5 Detik & Perbandingan Fitur -->
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-                <!-- Tabel Rincian per Segmen 5 Detik -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
-                    <h3 class="text-base font-bold text-white mb-3">⏱️ Rincian Prediksi per Segmen (5 Detik)</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-slate-400">
-                                    <th class="py-2 px-3">Segmen</th>
-                                    <th class="py-2 px-3">Rentang Waktu</th>
-                                    <th class="py-2 px-3">Prediksi</th>
-                                    <th class="py-2 px-3 text-right">Asli (%)</th>
-                                    <th class="py-2 px-3 text-right">AI (%)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodySegmen" class="divide-y divide-slate-800/70"></tbody>
-                        </table>
-                    </div>
+            <!-- Tabel Analisis Rincian Segmen 5 Detik -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                <h3 class="text-sm md:text-base font-bold text-white mb-3 flex items-center gap-2">
+                    <i data-lucide="list" class="w-4 h-4 text-emerald-400"></i>
+                    Rincian Klasifikasi per Segmen 5 Detik
+                </h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                                <th class="py-2.5 px-3">Segmen</th>
+                                <th class="py-2.5 px-3">Rentang Waktu</th>
+                                <th class="py-2.5 px-3">Hasil Prediksi</th>
+                                <th class="py-2.5 px-3 text-right">Prob. Human</th>
+                                <th class="py-2.5 px-3 text-right">Prob. AI</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodySegmen" class="divide-y divide-slate-800/60 font-medium"></tbody>
+                    </table>
                 </div>
+            </div>
 
-                <!-- Tabel Perbandingan Fitur Kunci -->
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 shadow-xl">
-                    <h3 class="text-base font-bold text-white mb-3">🔬 Perbandingan Fitur Utama Suara Ini vs Rata-rata Dataset</h3>
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-xs text-left border-collapse">
-                            <thead>
-                                <tr class="border-b border-slate-800 text-slate-400">
-                                    <th class="py-2 px-3">Nama Fitur</th>
-                                    <th class="py-2 px-3 text-right text-amber-300">Suara Uji Ini</th>
-                                    <th class="py-2 px-3 text-right text-blue-400">Mean Asli (0)</th>
-                                    <th class="py-2 px-3 text-right text-rose-400">Mean AI (1)</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tbodyFitur" class="divide-y divide-slate-800/70"></tbody>
-                        </table>
-                    </div>
+            <!-- Tabel Komparasi Nilai Fitur Terseleksi -->
+            <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
+                <h3 class="text-sm md:text-base font-bold text-white mb-2 flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4 text-amber-400"></i>
+                    Komparasi Nilai Fitur Akustik Terpenting
+                </h3>
+                <p class="text-xs text-slate-400 mb-3">
+                    Perbandingan nilai fitur akustik suara yang diuji terhadap rata-rata dataset referensi suara Human vs AI.
+                </p>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
+                                <th class="py-2 px-3">Nama Fitur</th>
+                                <th class="py-2 px-3 text-right">Nilai Suara Uji</th>
+                                <th class="py-2 px-3 text-right text-blue-400">Rata-rata Human Voice</th>
+                                <th class="py-2 px-3 text-right text-rose-400">Rata-rata AI Generated</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyFitur" class="divide-y divide-slate-800/60 font-medium"></tbody>
+                    </table>
                 </div>
-
             </div>
 
         </div>
 
     </main>
 
+    <!-- Footer Sistem -->
+    <footer class="border-t border-slate-900 py-6 text-center text-xs text-slate-400 mt-12">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-2">
+            <span>Voice Authenticity Detector — Proyek Sains Data Kelompok 4</span>
+            <span class="flex items-center gap-1.5 text-slate-400">
+                <i data-lucide="code" class="w-3.5 h-3.5"></i> Framework: Flask (Python) &amp; Random Forest
+            </span>
+        </div>
+    </footer>
+
+    <!-- Logika Interaktivitas Frontend -->
     <script>
-        // Inisialisasi preview audio sampel dataset
+        // Inisialisasi ikon Lucide
+        lucide.createIcons();
+
+        // Data sampel dari backend Flask
+        const dataSampel = {
+            asli_human: {{ sampel_asli | tojson }},
+            ai_manipulasi: {{ sampel_ai | tojson }}
+        };
+
         function updateSamplePreview() {
             const kelas = document.getElementById('selectKelas').value;
-            const file = document.getElementById('selectFile').value;
+            const selectFile = document.getElementById('selectFile');
+            const fileSekarang = selectFile.value;
+
+            // Perbarui opsi dropdown file jika kelas berubah
+            selectFile.innerHTML = '';
+            (dataSampel[kelas] || []).forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = f;
+                selectFile.appendChild(opt);
+            });
+
+            if (dataSampel[kelas] && dataSampel[kelas].length > 0) {
+                if (dataSampel[kelas].includes(fileSekarang)) {
+                    selectFile.value = fileSekarang;
+                } else {
+                    selectFile.value = dataSampel[kelas][0];
+                }
+            }
+
+            const file = selectFile.value;
             const player = document.getElementById('sampleAudioPreview');
-            player.src = `/sample_audio/${kelas}/${file}`;
+            if (file) {
+                player.src = `/sample_audio/${kelas}/${file}`;
+            }
         }
         window.addEventListener('DOMContentLoaded', updateSamplePreview);
 
@@ -254,7 +343,7 @@
         }
 
         // ==============================================================
-        // PEREKAM SUARA LANGSUNG DI BROWSER -> KONVERSI KE WAV 16.000 Hz
+        // PEREKAM AUDIO LANGSUNG (MIKROFON BROWSER -> WAV 16.000 Hz)
         // ==============================================================
         let audioCtx = null;
         let mediaStream = null;
@@ -283,7 +372,8 @@
                 document.getElementById('btnStartRec').disabled = true;
                 document.getElementById('btnStartRec').classList.add('opacity-40');
                 document.getElementById('btnStopRec').disabled = false;
-                document.getElementById('micStatus').textContent = '🔴 Sedang merekam... Silakan berbicara minimal 5 detik.';
+                document.getElementById('micStatus').textContent = 'Sedang merekam suara... Silakan berbicara minimal 5 detik.';
+                document.getElementById('micStatus').className = 'text-xs text-emerald-400 font-medium mb-2';
 
                 timerInterval = setInterval(() => {
                     const elapsed = ((Date.now() - recStartTime) / 1000).toFixed(1);
@@ -307,9 +397,10 @@
             document.getElementById('btnStartRec').disabled = false;
             document.getElementById('btnStartRec').classList.remove('opacity-40');
             document.getElementById('btnStopRec').disabled = true;
-            document.getElementById('micStatus').textContent = '✅ Rekaman selesai! Mengirim ke model Random Forest...';
+            document.getElementById('micStatus').textContent = 'Rekaman selesai! Mengirim berkas ke sistem klasifikasi...';
+            document.getElementById('micStatus').className = 'text-xs text-blue-400 font-medium mb-2';
 
-            // Gabungkan seluruh chunk Float32Array menjadi 1 Blob WAV
+            // Gabungkan buffer audio
             let totalLength = audioBuffers.reduce((acc, b) => acc + b.length, 0);
             let merged = new Float32Array(totalLength);
             let offset = 0;
@@ -325,7 +416,7 @@
             micPlayer.classList.remove('hidden');
 
             const formData = new FormData();
-            formData.append('audio_file', wavBlob, 'Rekaman_Voice_Langsung.wav');
+            formData.append('audio_file', wavBlob, 'Rekaman_Mikrofon.wav');
             formData.append('is_mic', 'true');
             await kirimKeBackend(formData);
         }
@@ -364,7 +455,7 @@
         async function kirimFileUpload() {
             const fileInput = document.getElementById('fileInput');
             if (!fileInput.files || !fileInput.files[0]) {
-                tampilkanError('Silakan pilih file .wav terlebih dahulu.');
+                tampilkanError('Silakan pilih berkas audio (.wav / .mp3) terlebih dahulu.');
                 return;
             }
             const formData = new FormData();
@@ -376,6 +467,10 @@
         async function ujiSampelDataset() {
             const kelas = document.getElementById('selectKelas').value;
             const file = document.getElementById('selectFile').value;
+            if (!file) {
+                tampilkanError('Pilih berkas sampel terlebih dahulu.');
+                return;
+            }
             const formData = new FormData();
             formData.append('sample_kelas', kelas);
             formData.append('sample_file', file);
@@ -384,8 +479,10 @@
 
         function tampilkanError(msg) {
             const errBox = document.getElementById('errorBox');
-            errBox.textContent = msg;
+            const errMsg = document.getElementById('errorMessage');
+            errMsg.textContent = msg;
             errBox.classList.remove('hidden');
+            lucide.createIcons();
         }
 
         async function kirimKeBackend(formData) {
@@ -413,21 +510,29 @@
             document.getElementById('resultContainer').classList.remove('hidden');
 
             const judulEl = document.getElementById('resPrediksiNama');
+            const subEl = document.getElementById('resPrediksiSub');
             const confEl = document.getElementById('resConfidenceUtama');
+            const iconStatus = document.getElementById('resIconStatus');
 
             if (data.prediksi_label === 0) {
-                judulEl.textContent = '🧑 ' + data.prediksi_nama;
-                judulEl.className = 'text-2xl md:text-3xl font-extrabold mt-1 text-blue-400';
+                judulEl.textContent = 'Human Voice';
+                judulEl.className = 'text-2xl md:text-3xl font-extrabold text-blue-400';
+                subEl.textContent = 'Audio terindikasi kuat sebagai suara manusia asli';
                 confEl.className = 'text-3xl font-black text-blue-400';
+                iconStatus.className = 'p-3 rounded-xl bg-blue-950/80 border border-blue-800 text-blue-400';
+                iconStatus.innerHTML = '<i data-lucide="user-check" class="w-8 h-8"></i>';
             } else {
-                judulEl.textContent = '🤖 ' + data.prediksi_nama;
-                judulEl.className = 'text-2xl md:text-3xl font-extrabold mt-1 text-rose-400';
+                judulEl.textContent = 'AI Generated Voice';
+                judulEl.className = 'text-2xl md:text-3xl font-extrabold text-rose-400';
+                subEl.textContent = 'Audio terindikasi kuat sebagai suara sintesis/manipulasi AI';
                 confEl.className = 'text-3xl font-black text-rose-400';
+                iconStatus.className = 'p-3 rounded-xl bg-rose-950/80 border border-rose-800 text-rose-400';
+                iconStatus.innerHTML = '<i data-lucide="bot" class="w-8 h-8"></i>';
             }
 
             confEl.textContent = data.confidence_utama + '%';
-            document.getElementById('resMetaInfo').textContent =
-                `Sumber: ${data.nama_sumber} | Durasi: ${data.durasi_detik} detik | Dianalisis dalam ${data.jumlah_segmen_5s} segmen @ 5 detik`;
+            document.getElementById('resMetaInfoText').textContent =
+                `Berkas: ${data.nama_sumber} | Durasi: ${data.durasi_detik} detik | Dianalisis dalam ${data.jumlah_segmen_5s} segmen @ 5 detik`;
 
             document.getElementById('barTextAsli').textContent = data.prob_asli + '%';
             document.getElementById('barFillAsli').style.width = data.prob_asli + '%';
@@ -436,20 +541,20 @@
 
             document.getElementById('resPlotImg').src = 'data:image/png;base64,' + data.plot_base64;
 
-            // Render tabel segmen
+            // Render rincian tabel segmen
             const tbodySeg = document.getElementById('tbodySegmen');
             tbodySeg.innerHTML = '';
             data.rincian_segmen.forEach(s => {
                 const badge = s.prediksi_label === 0
-                    ? `<span class="px-2 py-0.5 rounded bg-blue-950 text-blue-300 border border-blue-800 font-semibold">Manusia Asli (0)</span>`
-                    : `<span class="px-2 py-0.5 rounded bg-rose-950 text-rose-300 border border-rose-800 font-semibold">Manipulasi AI (1)</span>`;
+                    ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-950 text-blue-300 border border-blue-800 text-xs font-semibold"><i data-lucide="user" class="w-3.5 h-3.5"></i> Human Voice</span>`
+                    : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-950 text-rose-300 border border-rose-800 text-xs font-semibold"><i data-lucide="cpu" class="w-3.5 h-3.5"></i> AI Generated</span>`;
                 tbodySeg.innerHTML += `
-                    <tr class="hover:bg-slate-800/50">
-                        <td class="py-2 px-3 font-semibold">Segmen ${s.segmen_ke}</td>
-                        <td class="py-2 px-3 text-slate-400">${s.rentang_waktu}</td>
-                        <td class="py-2 px-3">${badge}</td>
-                        <td class="py-2 px-3 text-right font-mono text-blue-300">${s.prob_asli}%</td>
-                        <td class="py-2 px-3 text-right font-mono text-rose-300">${s.prob_ai}%</td>
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-2.5 px-3 font-semibold text-slate-200">Segmen ${s.segmen_ke}</td>
+                        <td class="py-2.5 px-3 text-slate-400">${s.rentang_waktu}</td>
+                        <td class="py-2.5 px-3">${badge}</td>
+                        <td class="py-2.5 px-3 text-right font-mono text-blue-300">${s.prob_asli}%</td>
+                        <td class="py-2.5 px-3 text-right font-mono text-rose-300">${s.prob_ai}%</td>
                     </tr>
                 `;
             });
@@ -459,14 +564,17 @@
             tbodyFit.innerHTML = '';
             data.perbandingan_fitur.forEach(f => {
                 tbodyFit.innerHTML += `
-                    <tr class="hover:bg-slate-800/50">
-                        <td class="py-2 px-3 font-mono font-semibold text-slate-200">${f.nama_fitur}</td>
+                    <tr class="hover:bg-slate-800/40 transition">
+                        <td class="py-2 px-3 font-mono text-slate-300">${f.nama_fitur}</td>
                         <td class="py-2 px-3 text-right font-mono font-bold text-amber-300">${f.nilai_suara_uji}</td>
                         <td class="py-2 px-3 text-right font-mono text-blue-300">${f.rata2_asli}</td>
                         <td class="py-2 px-3 text-right font-mono text-rose-300">${f.rata2_ai}</td>
                     </tr>
                 `;
             });
+
+            // Refresh ikon Lucide untuk elemen yang baru dirender
+            lucide.createIcons();
         }
     </script>
 </body>
