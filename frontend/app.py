@@ -14,14 +14,24 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 
 app = Flask(__name__)
 
+# Impor arsitektur CNN jika paket model menggunakan PyTorch
+try:
+    from cnn_architecture import AudioCNN1D, CNNVoiceClassifier
+except ImportError:
+    pass
+
 # Lokasi file model .pkl dan folder dataset
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'main', 'model_voice_rf_5s.pkl')
+MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'main', 'model_voice_cnn_5s.pkl')
+if not os.path.exists(MODEL_PATH):
+    MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'main', 'model_voice_rf_5s.pkl')
+
 DATA_DIR = os.path.join(BASE_DIR, 'data', 'dataset_audio_kaggle')
 
 # Muat paket model (.pkl) berbasis fitur terseleksi saat server dijalankan
 paket_model = joblib.load(MODEL_PATH)
-rf_model = paket_model['model']
+cnn_model = paket_model['model']
+rf_model = cnn_model  # alias kompatibilitas
 scaler = paket_model['scaler']
 kolom_fitur = paket_model['kolom_fitur']
 TARGET_SR = paket_model.get('sr', 16000)
@@ -241,7 +251,8 @@ def index():
         'index.html',
         sampel_asli=sampel_asli,
         sampel_ai=sampel_ai,
-        jumlah_fitur=len(kolom_fitur)
+        jumlah_fitur=len(kolom_fitur),
+        nama_model=paket_model.get('model_name', 'Deep Learning 1D-CNN (5s)')
     )
 
 

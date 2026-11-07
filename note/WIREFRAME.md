@@ -20,7 +20,7 @@ Sistem ini dikembangkan untuk mendeteksi keaslian suara (**Human Voice** vs **AI
 flowchart LR
     A["1. Pengguna Membuka Web App"] --> B["2. Unggah File Audio (.wav / .mp3)"]
     B --> C["3. Pipeline Preprocessing & Ekstraksi Fitur Terpilih"]
-    C --> D["4. Prediksi Model Random Forest (20 Fitur)"]
+    C --> D["4. Prediksi Model Deep Learning CNN (20 Fitur)"]
     D --> E["5. Tampilan Hasil Klasifikasi Otomatis"]
 ```
 
@@ -31,7 +31,7 @@ flowchart LR
    - Segmentasi audio per jendela waktu **5 detik**.
    - Ekstraksi fitur akustik dan pemfilteran otomatis ke **20 Fitur Terbaik** hasil seleksi fitur.
    - Transformasi skala menggunakan `StandardScaler`.
-4. **Sistem Menjalankan Inferensi Model:** Matriks fitur diproses oleh model **Random Forest Classifier** yang telah dilatih menggunakan dataset `file_seleksi_fitur.csv`.
+4. **Sistem Menjalankan Inferensi Model:** Matriks fitur diproses oleh model **Deep Learning 1D-CNN (*Convolutional Neural Network*)** yang telah dilatih menggunakan dataset `file_seleksi_fitur.csv`.
 5. **Sistem Menampilkan Hasil Klasifikasi:** Website langsung menyajikan status keaslian suara:
    - **Human Voice** (*Suara terindikasi manusia asli*)
    - **AI Generated Voice** (*Suara terindikasi hasil generasi/manipulasi AI*)
