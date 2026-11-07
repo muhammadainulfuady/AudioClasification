@@ -76,10 +76,8 @@ if __name__ == '__main__':
     os.makedirs('uas/AudioClasification/web-statis-voice-detection', exist_ok=True)
 
     pkl_targets = [
-        'uas/AudioClasification/backend/main/model_voice_cnn_5s.pkl',
-        'uas/AudioClasification/backend/main/model_voice_rf_5s.pkl',
-        'uas/AudioClasification/web-statis-voice-detection/model_voice_cnn_5s.pkl',
-        'uas/AudioClasification/web-statis-voice-detection/model_voice_rf_5s.pkl'
+        'backend/main/model_voice_cnn_5s.pkl',
+        'web-statis-voice-detection/model_voice_cnn_5s.pkl'
     ]
 
     for p in pkl_targets:
