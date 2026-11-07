@@ -2,6 +2,7 @@ import os
 import io
 import base64
 import joblib
+import pandas as pd
 import librosa
 import librosa.display
 import soundfile as sf
@@ -23,15 +24,21 @@ except ImportError:
 # Lokasi file model .pkl dan folder dataset
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
 MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'main', 'model_voice_cnn_5s.pkl')
-if not os.path.exists(MODEL_PATH):
-    MODEL_PATH = os.path.join(BASE_DIR, 'backend', 'main', 'model_voice_rf_5s.pkl')
 
 DATA_DIR = os.path.join(BASE_DIR, 'data', 'dataset_audio_kaggle')
+
+# Dataset fitur terseleksi yang sudah diekstrak untuk pengujian instan
+CSV_SELEKSI = os.path.join(BASE_DIR, 'hasil_ekstraksi', 'file_seleksi_fitur.csv')
+if not os.path.exists(CSV_SELEKSI):
+    CSV_SELEKSI = os.path.join(BASE_DIR, 'data', 'hasil_ekstraksi', 'file_seleksi_fitur.csv')
+
+DF_FITUR_PRECOMPUTED = None
+if os.path.exists(CSV_SELEKSI):
+    DF_FITUR_PRECOMPUTED = pd.read_csv(CSV_SELEKSI)
 
 # Muat paket model (.pkl) berbasis fitur terseleksi saat server dijalankan
 paket_model = joblib.load(MODEL_PATH)
 cnn_model = paket_model['model']
-rf_model = cnn_model  # alias kompatibilitas
 scaler = paket_model['scaler']
 kolom_fitur = paket_model['kolom_fitur']
 TARGET_SR = paket_model.get('sr', 16000)
@@ -195,7 +202,7 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
         list_fitur_df.append([d_fitur[k] for k in kolom_fitur])
 
     X_input = scaler.transform(np.array(list_fitur_df))
-    proba_segmen = rf_model.predict_proba(X_input)  # shape: (jumlah_segmen, 2)
+    proba_segmen = cnn_model.predict_proba(X_input)  # shape: (jumlah_segmen, 2)
     mean_proba = np.mean(proba_segmen, axis=0)
     pred_label = int(np.argmax(mean_proba))
 
@@ -267,10 +274,74 @@ def sample_audio(kelas, filename):
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
-        # 1. Jika memilih sampel langsung dari dataset
+        # 1. Jika memilih sampel langsung dari dataset -> LANGSUNG PREDIKSI MENGGUNAKAN FITUR PRECOMPUTED
         sample_kelas = request.form.get('sample_kelas')
         sample_file = request.form.get('sample_file')
         if sample_kelas and sample_file:
+            # Cari apakah fitur sampel sudah tersimpan di dataset CSV hasil seleksi fitur
+            if DF_FITUR_PRECOMPUTED is not None:
+                sub = DF_FITUR_PRECOMPUTED[
+                    (DF_FITUR_PRECOMPUTED['kelas'] == sample_kelas) &
+                    (DF_FITUR_PRECOMPUTED['file_induk'] == sample_file)
+                ]
+                if len(sub) > 0:
+                    # Langsung tebak menggunakan model CNN tanpa perlu ekstraksi atau segmentasi ulang
+                    X_input = sub[kolom_fitur].values
+                    X_scaled = scaler.transform(X_input)
+                    proba_segmen = cnn_model.predict_proba(X_scaled)  # shape: (jumlah_segmen, 2)
+                    mean_proba = np.mean(proba_segmen, axis=0)
+                    pred_label = int(np.argmax(mean_proba))
+
+                    rincian_segmen = []
+                    for idx, prob in enumerate(proba_segmen):
+                        lbl_seg = int(np.argmax(prob))
+                        rincian_segmen.append({
+                            'segmen_ke': idx + 1,
+                            'rentang_waktu': f'{idx*5} - {(idx+1)*5} detik',
+                            'prediksi_label': lbl_seg,
+                            'prediksi_teks': 'Human Voice' if lbl_seg == 0 else 'AI Generated Voice',
+                            'prob_asli': round(float(prob[0]) * 100, 2),
+                            'prob_ai': round(float(prob[1]) * 100, 2)
+                        })
+
+                    # Nilai fitur perbandingan
+                    fitur_utama = [f for f in ['mfcc_8_mean', 'mfcc_11_mean', 'mfcc_7_mean', 'mfcc_8_std', 'mfcc_4_mean', 'skewness', 'f0_std'] if f in kolom_fitur]
+                    perbandingan_fitur = []
+                    for nf in fitur_utama:
+                        nilai_input = float(sub[nf].mean())
+                        perbandingan_fitur.append({
+                            'nama_fitur': nf,
+                            'nilai_suara_uji': round(nilai_input, 4),
+                            'rata2_asli': round(float(MEAN_ASLI.get(nf, 0.0)), 4),
+                            'rata2_ai': round(float(MEAN_AI.get(nf, 0.0)), 4)
+                        })
+
+                    # Visualisasi audio cepat
+                    wav_path = os.path.join(DATA_DIR, sample_kelas, sample_file)
+                    if os.path.exists(wav_path):
+                        y_raw, sr_in = sf.read(wav_path, dtype='float32')
+                        durasi_total = round(len(y_raw) / sr_in, 2)
+                        plot_base64 = buat_visualisasi_prediksi(y_raw, sr_in, proba_segmen, f'{sample_kelas}/{sample_file}')
+                    else:
+                        durasi_total = float(len(sub) * 5)
+                        plot_base64 = ''
+
+                    return jsonify({
+                        'status': 'success',
+                        'nama_sumber': f'{sample_kelas}/{sample_file}',
+                        'durasi_detik': durasi_total,
+                        'jumlah_segmen_5s': len(sub),
+                        'prediksi_label': pred_label,
+                        'prediksi_nama': LABEL_MAP[pred_label],
+                        'confidence_utama': round(float(mean_proba[pred_label]) * 100, 2),
+                        'prob_asli': round(float(mean_proba[0]) * 100, 2),
+                        'prob_ai': round(float(mean_proba[1]) * 100, 2),
+                        'rincian_segmen': rincian_segmen,
+                        'perbandingan_fitur': perbandingan_fitur,
+                        'plot_base64': plot_base64
+                    })
+
+            # Jika file sampel tidak ada di CSV precomputed, proses dari file fisik
             wav_path = os.path.join(DATA_DIR, sample_kelas, sample_file)
             if not os.path.exists(wav_path):
                 return jsonify({'status': 'error', 'message': 'File sampel tidak ditemukan.'}), 404
