@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  audio-classifier:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: voice-authenticity-detector:latest
+    container_name: voice_detector_app
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      - PORT=5000
+      - PYTHONUNBUFFERED=1
+      - MPLCONFIGDIR=/tmp/matplotlib
+
