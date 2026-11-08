@@ -4,8 +4,15 @@ Sistem klasifikasi audio cerdas untuk mendeteksi keaslian suara (**Suara Manusia
 
 ---
 
+## 👥 Anggota Kelompok (Kelompok 4)
+1. **240411100009 — Muhammad Ainul Fuady**
+2. **240411100010 — Irwan Dwi Mukhlisin**
+3. **240411100105 — Fikri Mutawakkil**
+
+---
+
 ## 📌 Link Repository GitHub
-* **URL Repository Utama:** [https://github.com/mukhlisin24/AudioClasification](https://github.com/mukhlisin24/AudioClasification)
+* **URL Repository Utama:** [https://github.com/muhammadainulfuady/AudioClasification](https://github.com/muhammadainulfuady/AudioClasification)
 * **Akses:** Publik (*Public Repository*)
 
 ---
