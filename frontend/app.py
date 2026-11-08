@@ -36,19 +36,40 @@ DF_FITUR_PRECOMPUTED = None
 if os.path.exists(CSV_SELEKSI):
     DF_FITUR_PRECOMPUTED = pd.read_csv(CSV_SELEKSI)
 
-# Muat paket model (.pkl) berbasis fitur terseleksi saat server dijalankan
-paket_model = joblib.load(MODEL_PATH)
-cnn_model = paket_model['model']
-scaler = paket_model['scaler']
-kolom_fitur = paket_model['kolom_fitur']
-TARGET_SR = paket_model.get('sr', 16000)
-DURASI_SEGMEN = paket_model.get('durasi_segmen', 5)
-LABEL_MAP = paket_model.get('label_map', {
-    0: 'Human Voice',
-    1: 'AI Generated Voice'
-})
-MEAN_ASLI = paket_model.get('mean_asli', {})
-MEAN_AI = paket_model.get('mean_ai', {})
+# State paket model yang dimuat otomatis
+_last_model_mtime = 0
+paket_model = None
+cnn_model = None
+scaler = None
+kolom_fitur = []
+TARGET_SR = 16000
+DURASI_SEGMEN = 5
+LABEL_MAP = {0: 'Human Voice', 1: 'AI Generated Voice'}
+MEAN_ASLI = {}
+MEAN_AI = {}
+
+
+def muat_atau_perbarui_model():
+    """Memuat model atau memperbarui dari disk secara otomatis jika file .pkl berubah."""
+    global paket_model, cnn_model, scaler, kolom_fitur, TARGET_SR, DURASI_SEGMEN, LABEL_MAP, MEAN_ASLI, MEAN_AI, _last_model_mtime, DF_FITUR_PRECOMPUTED
+    if os.path.exists(MODEL_PATH):
+        mtime = os.path.getmtime(MODEL_PATH)
+        if paket_model is None or mtime > _last_model_mtime:
+            paket_model = joblib.load(MODEL_PATH)
+            cnn_model = paket_model['model']
+            scaler = paket_model['scaler']
+            kolom_fitur = paket_model['kolom_fitur']
+            TARGET_SR = paket_model.get('sr', 16000)
+            DURASI_SEGMEN = paket_model.get('durasi_segmen', 5)
+            LABEL_MAP = paket_model.get('label_map', {0: 'Human Voice', 1: 'AI Generated Voice'})
+            MEAN_ASLI = paket_model.get('mean_asli', {})
+            MEAN_AI = paket_model.get('mean_ai', {})
+            _last_model_mtime = mtime
+            if os.path.exists(CSV_SELEKSI):
+                DF_FITUR_PRECOMPUTED = pd.read_csv(CSV_SELEKSI)
+
+
+muat_atau_perbarui_model()
 
 
 def ekstrak_fitur_segmen(y_seg, sr, f0_seg):
@@ -140,7 +161,9 @@ def buat_visualisasi_prediksi(y_audio, sr, nama_sumber):
 
 
 def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False):
-    """Menjalankan inferensi langsung model Deep Learning CNN tanpa looping segmen berulang."""
+    """Menjalankan inferensi model Deep Learning CNN secara akurat dan komprehensif."""
+    muat_atau_perbarui_model()
+
     if y_raw.ndim > 1:
         y_raw = np.mean(y_raw, axis=1)
     y_raw = y_raw.astype(np.float32)
@@ -163,66 +186,67 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
     sampel_5s = DURASI_SEGMEN * TARGET_SR  # 80.000 sampel per 5 detik
     durasi_asli = round(len(y_audio) / TARGET_SR, 2)
 
-    # Ambil audio representatif 5 detik secara langsung dengan mendeteksi suara aktif
-    if len(y_audio) > sampel_5s:
-        win = int(0.25 * TARGET_SR)  # 4000 sampel per 0.25 detik
-        energi_frame = np.array([np.mean(y_audio[i:i+win]**2) for i in range(0, len(y_audio) - win, win // 2)])
-        ambang = max(1e-5, float(np.percentile(energi_frame, 30)))
-        idx_aktif = np.where(energi_frame > ambang)[0]
-        if len(idx_aktif) > 0:
-            start_idx = max(0, int(idx_aktif[0] * (win // 2)))
-            if start_idx + sampel_5s <= len(y_audio):
-                y_5s = y_audio[start_idx : start_idx + sampel_5s]
-            else:
-                y_5s = y_audio[-sampel_5s:]
-        else:
-            y_5s = y_audio[:sampel_5s]
-    elif len(y_audio) < sampel_5s:
+    # Bagi audio menjadi segmen 5 detik (maksimal 6 segmen)
+    segmen_list = []
+    if len(y_audio) < sampel_5s:
         ulang = int(np.ceil(sampel_5s / max(1, len(y_audio))))
-        y_5s = np.tile(y_audio, ulang)[:sampel_5s]
+        segmen_list.append(np.tile(y_audio, ulang)[:sampel_5s])
     else:
-        y_5s = y_audio
+        n_seg = min(6, max(1, len(y_audio) // sampel_5s))
+        for s in range(n_seg):
+            segmen_list.append(y_audio[s * sampel_5s : (s + 1) * sampel_5s])
 
-    # Ekstraksi cepat 20 fitur akustik terpilih dalam 1 kali proses (tanpa segment looping)
-    f0_seg = librosa.yin(y_5s, fmin=60, fmax=360, sr=TARGET_SR, hop_length=1024)
-    d_fitur = ekstrak_fitur_segmen(y_5s, TARGET_SR, f0_seg)
-    fitur_vec = [d_fitur[k] for k in kolom_fitur]
+    # Ekstraksi fitur setiap segmen dengan parameter identik saat pelatihan (fmin=50, fmax=400)
+    semua_d_fitur = []
+    fitur_rows = []
+    for y_s in segmen_list:
+        f0_seg = librosa.yin(y_s, fmin=50, fmax=400, sr=TARGET_SR)
+        d_fitur = ekstrak_fitur_segmen(y_s, TARGET_SR, f0_seg)
+        semua_d_fitur.append(d_fitur)
+        fitur_rows.append([d_fitur[k] for k in kolom_fitur])
 
-    # Inferensi langsung model Deep Learning CNN
-    X_input = scaler.transform(np.array([fitur_vec]))
-    proba = cnn_model.predict_proba(X_input)[0]  # shape: (2,)
+    # Inferensi batch model Deep Learning CNN
+    X_input = scaler.transform(np.array(fitur_rows))
+    probs_all = cnn_model.predict_proba(X_input)  # shape: (n_seg, 2)
+
+    # Rata-rata probabilitas antar segmen untuk audio keseluruhan
+    proba = np.mean(probs_all, axis=0)
     pred_label = int(np.argmax(proba))
 
     prob_asli = round(float(proba[0]) * 100, 2)
     prob_ai = round(float(proba[1]) * 100, 2)
 
-    rincian_segmen = [{
-        'segmen_ke': 1,
-        'rentang_waktu': f'0 - {min(durasi_asli, 5.0)} detik',
-        'prediksi_label': pred_label,
-        'prediksi_teks': 'Human Voice' if pred_label == 0 else 'AI Generated Voice',
-        'prob_asli': prob_asli,
-        'prob_ai': prob_ai
-    }]
+    rincian_segmen = []
+    for idx_s, p_seg in enumerate(probs_all):
+        p_lbl = int(np.argmax(p_seg))
+        rincian_segmen.append({
+            'segmen_ke': idx_s + 1,
+            'rentang_waktu': f'{idx_s * 5} - {min(durasi_asli, (idx_s + 1) * 5.0)} detik',
+            'prediksi_label': p_lbl,
+            'prediksi_teks': 'Human Voice' if p_lbl == 0 else 'AI Generated Voice',
+            'prob_asli': round(float(p_seg[0]) * 100, 2),
+            'prob_ai': round(float(p_seg[1]) * 100, 2)
+        })
 
     # Rata-rata fitur penting untuk ditampilkan di tabel perbandingan
     fitur_utama = [f for f in ['mfcc_8_mean', 'mfcc_11_mean', 'mfcc_7_mean', 'mfcc_8_std', 'mfcc_4_mean', 'skewness', 'f0_std'] if f in kolom_fitur]
     perbandingan_fitur = []
     for nf in fitur_utama:
+        nilai_uji = float(np.mean([d[nf] for d in semua_d_fitur]))
         perbandingan_fitur.append({
             'nama_fitur': nf,
-            'nilai_suara_uji': round(float(d_fitur[nf]), 4),
+            'nilai_suara_uji': round(nilai_uji, 4),
             'rata2_asli': round(float(MEAN_ASLI.get(nf, 0.0)), 4),
             'rata2_ai': round(float(MEAN_AI.get(nf, 0.0)), 4)
         })
 
-    plot_base64 = buat_visualisasi_prediksi(y_5s, TARGET_SR, nama_sumber)
+    plot_base64 = buat_visualisasi_prediksi(segmen_list[0], TARGET_SR, nama_sumber)
 
     return {
         'status': 'success',
         'nama_sumber': nama_sumber,
         'durasi_detik': durasi_asli,
-        'jumlah_segmen_5s': 1,
+        'jumlah_segmen_5s': len(segmen_list),
         'prediksi_label': pred_label,
         'prediksi_nama': LABEL_MAP[pred_label],
         'confidence_utama': round(float(proba[pred_label]) * 100, 2),
@@ -236,6 +260,7 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
 
 @app.route('/')
 def index():
+    muat_atau_perbarui_model()
     # Siapkan daftar contoh file dari dataset
     sampel_asli = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'asli_human')) if f.endswith('.wav')])[:15]
     sampel_ai = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'ai_manipulasi')) if f.endswith('.wav')])[:15]
@@ -260,6 +285,7 @@ def sample_audio(kelas, filename):
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
+        muat_atau_perbarui_model()
         # 1. Jika memilih sampel langsung dari dataset -> LANGSUNG PREDIKSI MENGGUNAKAN FITUR PRECOMPUTED
         sample_kelas = request.form.get('sample_kelas')
         sample_file = request.form.get('sample_file')
