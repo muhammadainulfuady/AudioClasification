@@ -87,7 +87,7 @@ def ekstrak_fitur_segmen(y_seg, sr, f0_seg):
     flatness = librosa.feature.spectral_flatness(S=S)[0]
     contrast = librosa.feature.spectral_contrast(S=S, sr=sr)
 
-    voiced_mask = rms[:len(f0_seg)] > 0.01
+    voiced_mask = rms[:len(f0_seg)] > max(0.015, float(np.percentile(rms, 30)))
     f0_voiced = f0_seg[voiced_mask] if np.any(voiced_mask) else f0_seg
     f0_mean = float(np.mean(f0_voiced))
     f0_std = float(np.std(f0_voiced))
@@ -173,15 +173,22 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
     else:
         y_audio = y_raw
 
-    # Jika berasal dari mikrofon langsung, sesuaikan level energi RMS
-    if is_mic:
-        y_trimmed, _ = librosa.effects.trim(y_audio, top_db=28)
-        if len(y_trimmed) > TARGET_SR:
+    # Hilangkan bias listrik DC (DC offset)
+    y_audio = y_audio - np.mean(y_audio)
+
+    # Potong hening di awal dan akhir agar inferensi fokus pada bagian vokal aktif
+    try:
+        y_trimmed, _ = librosa.effects.trim(y_audio, top_db=25)
+        if len(y_trimmed) >= TARGET_SR:
             y_audio = y_trimmed
-        rms_curr = float(np.sqrt(np.mean(y_audio**2)))
-        if rms_curr > 1e-4:
-            y_audio = y_audio * (0.023 / rms_curr)
-            y_audio = np.clip(y_audio, -1.0, 1.0)
+    except Exception:
+        pass
+
+    # Normalisasi level energi RMS agar konsisten dengan standar dataset pelatihan (~0.038)
+    rms_curr = float(np.sqrt(np.mean(y_audio**2)))
+    if rms_curr > 1e-4:
+        y_audio = y_audio * (0.038 / rms_curr)
+        y_audio = np.clip(y_audio, -1.0, 1.0)
 
     sampel_5s = DURASI_SEGMEN * TARGET_SR  # 80.000 sampel per 5 detik
     durasi_asli = round(len(y_audio) / TARGET_SR, 2)

@@ -354,7 +354,14 @@
 
         async function mulaiRekam() {
             try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaStream = await navigator.mediaDevices.getUserMedia({
+                    audio: {
+                        channelCount: 1,
+                        echoCancellation: true,
+                        noiseSuppression: true,
+                        autoGainControl: true
+                    }
+                });
                 audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
                 const source = audioCtx.createMediaStreamSource(mediaStream);
                 scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
@@ -366,7 +373,11 @@
                 };
 
                 source.connect(scriptProcessor);
-                scriptProcessor.connect(audioCtx.destination);
+                // Jangan sambungkan ke destination agar tidak terjadi feedback/statis ke speaker
+                const muteNode = audioCtx.createGain();
+                muteNode.gain.value = 0;
+                scriptProcessor.connect(muteNode);
+                muteNode.connect(audioCtx.destination);
 
                 recStartTime = Date.now();
                 document.getElementById('btnStartRec').disabled = true;
