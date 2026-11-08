@@ -8,7 +8,7 @@ FROM python:3.10-slim
 # Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PORT=2006 \
+    PORT=5000 \
     PYTHONPATH=/app \
     FLASK_APP=frontend/app.py \
     MPLCONFIGDIR=/tmp/matplotlib
@@ -37,13 +37,13 @@ COPY . .
 # Buat direktori temporary untuk cache matplotlib
 RUN mkdir -p /tmp/matplotlib && chmod -R 777 /tmp/matplotlib
 
-# Buka hanya 1 port sesuai ketentuan server lab (Port 2006)
-EXPOSE 2006
+# Buka hanya 1 port sesuai ketentuan server lab (Port 5000)
+EXPOSE 5000
 
 # Healthcheck untuk monitoring kontainer di Proxmox
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD curl -f http://localhost:2006/ || exit 1
+    CMD curl -f http://localhost:5000/ || exit 1
 
 # Perintah menjalankan aplikasi web Flask
-CMD ["python", "-m", "flask", "--app", "frontend/app.py", "run", "--host=0.0.0.0", "--port=2006"]
+CMD ["python", "-m", "flask", "--app", "frontend/app.py", "run", "--host=0.0.0.0", "--port=5000"]
 

@@ -7,9 +7,9 @@ services:
     container_name: voice_detector_app
     restart: unless-stopped
     ports:
-      - "2006:2006"
+      - "5000:5000"
     environment:
-      - PORT=2006
+      - PORT=5000
       - PYTHONUNBUFFERED=1
       - MPLCONFIGDIR=/tmp/matplotlib
 
