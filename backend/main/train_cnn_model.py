@@ -13,7 +13,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
 from cnn_architecture import AudioCNN1D, CNNVoiceClassifier
 
-csv_path = 'uas/AudioClasification/hasil_ekstraksi/file_seleksi_fitur.csv'
+csv_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', 'hasil_ekstraksi', 'file_seleksi_fitur.csv'))
 df = pd.read_csv(csv_path)
 
 meta_cols = ['id_sampel', 'file_induk', 'segmen_ke', 'durasi_detik', 'kelas', 'label']
