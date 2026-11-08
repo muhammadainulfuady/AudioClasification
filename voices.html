@@ -452,11 +452,11 @@ Tahapan yang dilakukan mengikuti 6 fase terstandarisasi <strong>CRISP-DM</strong
 <hr class="docutils" />
 <section class="tex2jax_ignore mathjax_ignore" id="tahap-2-data-understanding-pemahaman-eksplorasi-data-audio">
 <h1>Tahap 2: <em>Data Understanding</em> (Pemahaman &amp; Eksplorasi Data Audio)<a class="headerlink" href="#tahap-2-data-understanding-pemahaman-eksplorasi-data-audio" title="Link to this heading">#</a></h1>
-<p>Pada tahap ini, kita menginventarisasi dataset audio 200 file induk yang terdiri atas:</p>
+<p>Pada tahap ini, kita menginventarisasi dataset audio 301 file induk yang terdiri atas:</p>
 <ul class="simple">
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">asli_human</span></code> (100 file):</strong> Rekaman suara manusia asli.</p></li>
-<li><p><strong><code class="docutils literal notranslate"><span class="pre">ai_manipulasi</span></code> (100 file):</strong> Rekaman suara hasil model Text-to-Speech / Voice Changer AI.
-Seluruh audio divalidasi memastikan berdurasi 30 detik pada <em>sample rate</em> 16.000 Hz mono.</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">asli_human</span></code> (150 file):</strong> Rekaman suara manusia asli (<code class="docutils literal notranslate"><span class="pre">audio_001.wav</span></code> s.d. <code class="docutils literal notranslate"><span class="pre">audio_150.wav</span></code>).</p></li>
+<li><p><strong><code class="docutils literal notranslate"><span class="pre">ai_manipulasi</span></code> (151 file):</strong> Rekaman suara hasil model Text-to-Speech / Voice Changer AI (<code class="docutils literal notranslate"><span class="pre">audio_001.wav</span></code> s.d. <code class="docutils literal notranslate"><span class="pre">audio_151.wav</span></code>).
+Seluruh audio divalidasi dan terstandarisasi pada format WAV 16-bit PCM mono pada <em>sample rate</em> 16.000 Hz.</p></li>
 </ul>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -499,56 +499,12 @@ Seluruh audio divalidasi memastikan berdurasi 30 detik pada <em>sample rate</em>
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Memeriksa folder: asli_human -&gt; Ditemukan 100 file .wav
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Memeriksa folder: asli_human -&gt; Ditemukan 150 file .wav
 Memeriksa folder: ai_manipulasi -&gt; Ditemukan 151 file .wav
-Total file audio valid: 251 | File bermasalah: 0
+Total file audio valid: 301 | File bermasalah: 0
 </pre></div>
 </div>
-<div class="output text_html"><div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
-
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>sample_rate</th>
-      <th>channels</th>
-      <th>duration_sec</th>
-    </tr>
-    <tr>
-      <th>kelas</th>
-      <th></th>
-      <th></th>
-      <th></th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>ai_manipulasi</th>
-      <td>16000.0</td>
-      <td>1.0</td>
-      <td>28.019669</td>
-    </tr>
-    <tr>
-      <th>asli_human</th>
-      <td>16000.0</td>
-      <td>1.0</td>
-      <td>30.000000</td>
-    </tr>
-  </tbody>
-</table>
-</div></div></div>
+</div>
 </div>
 </section>
 <hr class="docutils" />
@@ -556,14 +512,14 @@ Total file audio valid: 251 | File bermasalah: 0
 <h1>Tahap 3: <em>Data Preparation</em> (Segmentasi, Ekstraksi 48 Fitur, &amp; Seleksi 20 Fitur)<a class="headerlink" href="#tahap-3-data-preparation-segmentasi-ekstraksi-48-fitur-seleksi-20-fitur" title="Link to this heading">#</a></h1>
 <p>Sesuai <strong>Ketentuan Poin 1-6 pada <a class="reference external" href="http://PROMT.md">PROMT.md</a></strong>:</p>
 <ol class="arabic simple">
-<li><p><strong>Ekstraksi Seluruh Fitur (48 Fitur Awal):</strong> Setiap file 30 detik dipotong menjadi <strong>6 segmen &#64; 5 detik</strong> (menghasilkan 1.200 sampel segmen). Dari setiap segmen diekstrak 48 fitur akustik lengkap.</p></li>
+<li><p><strong>Ekstraksi Seluruh Fitur (48 Fitur Awal):</strong> Setiap file dipotong menjadi segmen berdurasi <strong>5 detik</strong> (menghasilkan 1.582 sampel segmen). Dari setiap segmen diekstrak 48 fitur akustik lengkap (Time-domain, Frequency/Spectral, Pitch F0, dan Cepstral MFCC).</p></li>
 <li><p><strong>Pengelolaan Folder Khusus Output (<code class="docutils literal notranslate"><span class="pre">hasil_ekstraksi/</span></code>):</strong></p>
 <ul class="simple">
-<li><p>Seluruh 48 fitur disimpan dalam file: <strong><code class="docutils literal notranslate"><span class="pre">hasil_ekstraksi/file_ekstraksi.csv</span></code></strong> (1.200 baris x 54 kolom).</p></li>
+<li><p>Seluruh 48 fitur disimpan dalam file: <strong><code class="docutils literal notranslate"><span class="pre">hasil_ekstraksi/file_ekstraksi.csv</span></code></strong> (1.582 baris x 54 kolom).</p></li>
 </ul>
 </li>
-<li><p><strong>Seleksi Fitur (<em>Feature Selection</em>):</strong> Mengukur korelasi dan bobot kepentingan pohon (<em>Random Forest Importance</em>) untuk memilih <strong>20 Fitur Terbaik</strong>.</p></li>
-<li><p><strong>Pembuatan Dataset Hasil Seleksi:</strong> Fitur-fitur terpilih diekspor ke file baru: <strong><code class="docutils literal notranslate"><span class="pre">hasil_ekstraksi/file_seleksi_fitur.csv</span></code></strong> (1.200 baris x 26 kolom).</p></li>
+<li><p><strong>Seleksi Fitur (<em>Feature Selection</em>):</strong> Mengukur signifikansi bobot pohon (<em>Random Forest Importance</em>) untuk memilih <strong>20 Fitur Terbaik</strong>.</p></li>
+<li><p><strong>Pembuatan Dataset Hasil Seleksi:</strong> Fitur-fitur terpilih diekspor ke file baru: <strong><code class="docutils literal notranslate"><span class="pre">hasil_ekstraksi/file_seleksi_fitur.csv</span></code></strong> (1.582 baris x 26 kolom).</p></li>
 <li><p><strong>Dataset yang Digunakan Pemodelan:</strong> Dataset terbaru <code class="docutils literal notranslate"><span class="pre">file_seleksi_fitur.csv</span></code> digunakan pada tahap pemodelan selanjutnya.</p></li>
 </ol>
 <div class="cell docutils container">
@@ -648,14 +604,14 @@ Total file audio valid: 251 | File bermasalah: 0
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Memuat file ekstraksi yang sudah ada: ../../hasil_ekstraksi\file_ekstraksi.csv
-Total baris data: 1200 | Total fitur awal: 48
+Total baris data: 1582 | Total fitur awal: 48
 </pre></div>
 </div>
 </div>
 </div>
 <section id="seleksi-fitur-feature-selection-ekspor-file-seleksi-fitur-csv">
 <h2>3.1 Seleksi Fitur (<em>Feature Selection</em>) &amp; Ekspor <code class="docutils literal notranslate"><span class="pre">file_seleksi_fitur.csv</span></code><a class="headerlink" href="#seleksi-fitur-feature-selection-ekspor-file-seleksi-fitur-csv" title="Link to this heading">#</a></h2>
-<p>Kita mengukur signifikansi seluruh 48 fitur terhadap label (<code class="docutils literal notranslate"><span class="pre">0</span></code> = Human, <code class="docutils literal notranslate"><span class="pre">1</span></code> = AI) menggunakan <em>Random Forest Gini Importance</em>. Fitur-fitur terbaik yang memberikan kontribusi informasi kumulatif <span class="math notranslate nohighlight">\(pprox 88\%\)</span> dipilih, sedangkan 28 fitur lemah dan redundan dieliminasi.</p>
+<p>Kita mengukur signifikansi seluruh 48 fitur terhadap label (<code class="docutils literal notranslate"><span class="pre">0</span></code> = Human, <code class="docutils literal notranslate"><span class="pre">1</span></code> = AI) menggunakan <em>Random Forest Gini Importance</em>. Fitur-fitur terbaik yang memberikan kontribusi informasi kumulatif ~80.78% dipilih, sedangkan 28 fitur lemah dan redundan dieliminasi.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Evaluasi kepentingan fitur menggunakan Group Split</span>
@@ -693,136 +649,30 @@ Total baris data: 1200 | Total fitur awal: 48
 </div>
 </div>
 <div class="cell_output docutils container">
-<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Top-20 Fitur Terpilih (Total Bobot: 87.87%):
-</pre></div>
-</div>
-<div class="output text_html"><div>
-<style scoped>
-    .dataframe tbody tr th:only-of-type {
-        vertical-align: middle;
-    }
+<div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Top-20 Fitur Terpilih (Total Bobot: 80.78%):
+  1. mfcc_8_mean          : 11.76%
+  2. mfcc_8_std           : 9.38%
+  3. mfcc_4_std           : 6.87%
+  4. mfcc_7_mean          : 6.00%
+  5. mfcc_6_std           : 5.85%
+  6. mfcc_11_std          : 5.79%
+  7. delta_mfcc_std       : 5.63%
+  8. mfcc_11_mean         : 5.57%
+  9. mfcc_5_mean          : 3.44%
+ 10. mfcc_4_mean          : 3.07%
+ 11. mfcc_7_std           : 2.75%
+ 12. mfcc_2_std           : 2.51%
+ 13. mfcc_1_std           : 2.41%
+ 14. mfcc_10_mean         : 1.68%
+ 15. mfcc_9_std           : 1.52%
+ 16. skewness             : 1.39%
+ 17. rms_mean             : 1.34%
+ 18. f0_std               : 1.28%
+ 19. mfcc_13_std          : 1.27%
+ 20. mfcc_12_mean         : 1.26%
 
-    .dataframe tbody tr th {
-        vertical-align: top;
-    }
-
-    .dataframe thead th {
-        text-align: right;
-    }
-</style>
-<table border="1" class="dataframe">
-  <thead>
-    <tr style="text-align: right;">
-      <th></th>
-      <th>Nama Fitur</th>
-      <th>Importance (%)</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <th>0</th>
-      <td>mfcc_8_mean</td>
-      <td>16.706823</td>
-    </tr>
-    <tr>
-      <th>1</th>
-      <td>mfcc_11_mean</td>
-      <td>11.789662</td>
-    </tr>
-    <tr>
-      <th>2</th>
-      <td>mfcc_7_mean</td>
-      <td>9.567108</td>
-    </tr>
-    <tr>
-      <th>3</th>
-      <td>mfcc_8_std</td>
-      <td>9.007784</td>
-    </tr>
-    <tr>
-      <th>4</th>
-      <td>mfcc_4_mean</td>
-      <td>5.325705</td>
-    </tr>
-    <tr>
-      <th>5</th>
-      <td>mfcc_5_mean</td>
-      <td>5.149571</td>
-    </tr>
-    <tr>
-      <th>6</th>
-      <td>mfcc_6_std</td>
-      <td>4.941052</td>
-    </tr>
-    <tr>
-      <th>7</th>
-      <td>skewness</td>
-      <td>4.372766</td>
-    </tr>
-    <tr>
-      <th>8</th>
-      <td>mfcc_4_std</td>
-      <td>3.739446</td>
-    </tr>
-    <tr>
-      <th>9</th>
-      <td>mfcc_11_std</td>
-      <td>3.144374</td>
-    </tr>
-    <tr>
-      <th>10</th>
-      <td>mfcc_1_mean</td>
-      <td>2.426150</td>
-    </tr>
-    <tr>
-      <th>11</th>
-      <td>delta_mfcc_std</td>
-      <td>2.156394</td>
-    </tr>
-    <tr>
-      <th>12</th>
-      <td>mfcc_12_mean</td>
-      <td>1.665093</td>
-    </tr>
-    <tr>
-      <th>13</th>
-      <td>f0_std</td>
-      <td>1.615659</td>
-    </tr>
-    <tr>
-      <th>14</th>
-      <td>mfcc_13_std</td>
-      <td>1.252346</td>
-    </tr>
-    <tr>
-      <th>15</th>
-      <td>mfcc_10_mean</td>
-      <td>1.141131</td>
-    </tr>
-    <tr>
-      <th>16</th>
-      <td>mfcc_13_mean</td>
-      <td>1.057779</td>
-    </tr>
-    <tr>
-      <th>17</th>
-      <td>mfcc_7_std</td>
-      <td>0.976745</td>
-    </tr>
-    <tr>
-      <th>18</th>
-      <td>contrast_mean</td>
-      <td>0.926782</td>
-    </tr>
-    <tr>
-      <th>19</th>
-      <td>mfcc_3_mean</td>
-      <td>0.908223</td>
-    </tr>
-  </tbody>
-</table>
-</div></div><div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>Dataset hasil seleksi fitur berhasil disimpan ke: ../../hasil_ekstraksi\file_seleksi_fitur.csv
-Dimensi dataset seleksi: (1200, 26) (Berkurang dari 54 menjadi 26 kolom)
+Dataset hasil seleksi fitur berhasil disimpan ke: ../../hasil_ekstraksi\file_seleksi_fitur.csv
+Dimensi dataset seleksi: (1582, 26) (Berkurang dari 54 menjadi 26 kolom)
 </pre></div>
 </div>
 </div>
@@ -876,7 +726,7 @@ Dimensi dataset seleksi: (1200, 26) (Berkurang dari 54 menjadi 26 kolom)
 <hr class="docutils" />
 <section class="tex2jax_ignore mathjax_ignore" id="tahap-5-evaluation-evaluasi-model-deep-learning-1d-cnn">
 <h1>Tahap 5: <em>Evaluation</em> (Evaluasi Model Deep Learning 1D-CNN)<a class="headerlink" href="#tahap-5-evaluation-evaluasi-model-deep-learning-1d-cnn" title="Link to this heading">#</a></h1>
-<p>Pengujian performa model dilakukan secara ketat pada data <em>testing</em> (240 segmen uji dari 40 file induk yang belum pernah dilihat model selama pelatihan) untuk mengukur akurasi, presisi, recall, F1-score, serta confusion matrix model Deep Learning CNN.</p>
+<p>Pengujian performa model dilakukan secara ketat pada data <em>testing</em> (345 segmen uji dari file induk test yang belum pernah dilihat model selama pelatihan) untuk mengukur akurasi, presisi, recall, F1-score, serta confusion matrix model Deep Learning CNN.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="c1"># Prediksi Deep Learning CNN</span>
@@ -905,27 +755,27 @@ Dimensi dataset seleksi: (1200, 26) (Berkurang dari 54 menjadi 26 kolom)
 </div>
 <div class="cell_output docutils container">
 <div class="output stream highlight-myst-ansi notranslate"><div class="highlight"><pre><span></span>==========================================================================
-HASIL EVALUASI MODEL DEEP LEARNING 1D-CNN (DATA UJI - 240 SAMPEL)
+HASIL EVALUASI MODEL DEEP LEARNING 1D-CNN (DATA UJI - 345 SAMPEL)
 ==========================================================================
-Akurasi Data Uji (Test Accuracy) : 99.17% (Target: &gt;= 95.0%) -&gt; TERPENUHI
-F1-Score                         : 99.16% (Target: &gt;= 95.0%) -&gt; TERPENUHI
-Presisi (Precision)              : 100.00%
-Sensitivitas (Recall)            : 98.33%
+Akurasi Data Uji (Test Accuracy) : 98.55% (Target: &gt;= 95.0%) -&gt; TERPENUHI
+F1-Score                         : 98.59% (Target: &gt;= 95.0%) -&gt; TERPENUHI
+Presisi (Precision)              : 99.43%
+Sensitivitas (Recall)            : 97.77%
 ==========================================================================
 
 Confusion Matrix AudioCNN1D (Deep Learning):
-[[120   0]
- [  2 118]]
+[[165   1]
+ [  4 175]]
 
 Classification Report AudioCNN1D:
                     precision    recall  f1-score   support
 
-       Human Voice       0.98      1.00      0.99       120
-AI Generated Voice       1.00      0.98      0.99       120
+       Human Voice       0.98      0.99      0.98       166
+AI Generated Voice       0.99      0.98      0.99       179
 
-          accuracy                           0.99       240
-         macro avg       0.99      0.99      0.99       240
-      weighted avg       0.99      0.99      0.99       240
+          accuracy                           0.99       345
+         macro avg       0.99      0.99      0.99       345
+      weighted avg       0.99      0.99      0.99       345
 </pre></div>
 </div>
 </div>
@@ -934,7 +784,7 @@ AI Generated Voice       1.00      0.98      0.99       120
 <hr class="docutils" />
 <section class="tex2jax_ignore mathjax_ignore" id="tahap-6-deployment-penyimpanan-model-cnn-pkl-integrasi-flask">
 <h1>Tahap 6: <em>Deployment</em> (Penyimpanan Model CNN <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> &amp; Integrasi Flask)<a class="headerlink" href="#tahap-6-deployment-penyimpanan-model-cnn-pkl-integrasi-flask" title="Link to this heading">#</a></h1>
-<p>Model Deep Learning CNN yang telah membuktikan akurasi tertinggi (<strong>99.58%</strong>) dibungkus bersama objek <code class="docutils literal notranslate"><span class="pre">StandardScaler</span></code>, daftar 20 <code class="docutils literal notranslate"><span class="pre">fitur_terpilih</span></code>, dan arsitektur <code class="docutils literal notranslate"><span class="pre">AudioCNN1D</span></code> ke dalam format <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> dan <code class="docutils literal notranslate"><span class="pre">.pt</span></code> untuk melayani inferensi di server web Flask.</p>
+<p>Model Deep Learning CNN yang telah membuktikan akurasi tinggi (<strong>98.55%</strong>) dibungkus bersama objek <code class="docutils literal notranslate"><span class="pre">StandardScaler</span></code>, daftar 20 <code class="docutils literal notranslate"><span class="pre">fitur_terpilih</span></code>, dan arsitektur <code class="docutils literal notranslate"><span class="pre">AudioCNN1D</span></code> ke dalam format <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> dan <code class="docutils literal notranslate"><span class="pre">.pt</span></code> untuk melayani inferensi di server web Flask.</p>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">paket_model</span> <span class="o">=</span> <span class="p">{</span>
