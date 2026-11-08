@@ -321,7 +321,11 @@ document.write(`
             <nav aria-label="Page">
                 <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Proyek Sains Data — Klasifikasi Audio (Human Voice vs AI Generated Voice)</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementasi-metodologi-crisp-dm-cross-industry-standard-process-for-data-mining">Implementasi Metodologi CRISP-DM (<em>Cross-Industry Standard Process for Data Mining</em>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementasi-metodologi-crisp-dm-cross-industry-standard-process-for-data-mining">Implementasi Metodologi CRISP-DM (<em>Cross-Industry Standard Process for Data Mining</em>)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#anggota-kelompok-4">Anggota Kelompok 4:</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ringkasan-eksekutif-proyek">Ringkasan Eksekutif Proyek</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#tahap-1-business-understanding-pemahaman-bisnis-permasalahan">Tahap 1: <em>Business Understanding</em> (Pemahaman Bisnis &amp; Permasalahan)</a><ul class="visible nav section-nav flex-column">
@@ -356,15 +360,26 @@ document.write(`
 <h1>Proyek Sains Data — Klasifikasi Audio (Human Voice vs AI Generated Voice)<a class="headerlink" href="#proyek-sains-data-klasifikasi-audio-human-voice-vs-ai-generated-voice" title="Link to this heading">#</a></h1>
 <section id="implementasi-metodologi-crisp-dm-cross-industry-standard-process-for-data-mining">
 <h2>Implementasi Metodologi CRISP-DM (<em>Cross-Industry Standard Process for Data Mining</em>)<a class="headerlink" href="#implementasi-metodologi-crisp-dm-cross-industry-standard-process-for-data-mining" title="Link to this heading">#</a></h2>
-<p>Notebook ini merupakan implementasi alur riset dan pengembangan model klasifikasi keaslian suara berdasarkan <strong>Panduan Evaluasi Proyek Sains Data Pertemuan ke-10 (<a class="reference external" href="http://PROMT.md">PROMT.md</a>)</strong>.
-Tahapan yang dilakukan mengikuti 6 fase terstandarisasi <strong>CRISP-DM</strong>:</p>
+<section id="anggota-kelompok-4">
+<h3>Anggota Kelompok 4:<a class="headerlink" href="#anggota-kelompok-4" title="Link to this heading">#</a></h3>
 <ol class="arabic simple">
-<li><p><strong>Business Understanding</strong> (Pemahaman Masalah &amp; Wireframe Alur Sistem)</p></li>
-<li><p><strong>Data Understanding</strong> (Inventarisasi &amp; Eksplorasi Dataset Audio)</p></li>
-<li><p><strong>Data Preparation</strong> (Segmentasi 5s, Ekstraksi 48 Fitur, &amp; Seleksi 20 Fitur Terbaik)</p></li>
-<li><p><strong>Modeling</strong> (Menggunakan Dataset Hasil Seleksi Fitur <code class="docutils literal notranslate"><span class="pre">file_seleksi_fitur.csv</span></code>)</p></li>
-<li><p><strong>Evaluation</strong> (Validasi Silang, Confusion Matrix, Error Analysis)</p></li>
-<li><p><strong>Deployment</strong> (Ekspor Model <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> &amp; Integrasi Website Flask)</p></li>
+<li><p><strong>240411100009 — Muhammad Ainul Fuady</strong></p></li>
+<li><p><strong>240411100010 — Irwan Dwi Mukhlisin</strong></p></li>
+<li><p><strong>240411100105 — Fikri Mutawakkil</strong></p></li>
+</ol>
+</section>
+<hr class="docutils" />
+<section id="ringkasan-eksekutif-proyek">
+<h3>Ringkasan Eksekutif Proyek<a class="headerlink" href="#ringkasan-eksekutif-proyek" title="Link to this heading">#</a></h3>
+<p>Notebook ini merupakan dokumentasi riset dan implementasi sistem klasifikasi keaslian suara berdasarkan <strong>Panduan Evaluasi Proyek Sains Data Pertemuan ke-10 (<a class="reference external" href="http://PROMT.md">PROMT.md</a>)</strong>.
+Seluruh tahapan riset dan rekayasa data dilaksanakan mengikuti 6 fase terstandarisasi <strong>CRISP-DM</strong>:</p>
+<ol class="arabic simple">
+<li><p><strong>Business Understanding</strong> — Pemahaman latar belakang kejahatan siber berbasis <em>deepfake audio</em>, perumusan masalah, tujuan bisnis, dan rancangan <em>wireframe</em> sistem.</p></li>
+<li><p><strong>Data Understanding</strong> — Eksplorasi karakteristik dataset audio (301 file WAV terstandarisasi 16 kHz Mono: 150 rekaman manusia asli dan 151 rekaman sintesis AI).</p></li>
+<li><p><strong>Data Preparation</strong> — Segmentasi audio per 5 detik (1.582 segmen), ekstraksi 48 fitur akustik lengkap, dan seleksi <strong>20 Fitur Terbaik</strong> menggunakan signifikansi <em>Random Forest Gini Importance</em> yang disimpan dalam <code class="docutils literal notranslate"><span class="pre">file_seleksi_fitur.csv</span></code>.</p></li>
+<li><p><strong>Modeling</strong> — Pelatihan model Deep Learning <strong>1D-CNN (Convolutional Neural Network)</strong> menggunakan dataset fitur terseleksi dengan skema pembagian data bebas kebocoran (<em>leakage-free group split</em>).</p></li>
+<li><p><strong>Evaluation</strong> — Pengujian menyeluruh pada data uji (Test Set) meliputi kalkulasi matriks performa (Akurasi, F1-Score, Presisi, Recall) dan Confusion Matrix.</p></li>
+<li><p><strong>Deployment</strong> — Pembungkusan model menjadi artefak <code class="docutils literal notranslate"><span class="pre">.pkl</span></code> dan <code class="docutils literal notranslate"><span class="pre">.pt</span></code>, integrasi aplikasi web Flask interaktif, serta orkestrasi kontainer Docker Compose untuk deployment di server lab.</p></li>
 </ol>
 <div class="cell docutils container">
 <div class="cell_input docutils container">
@@ -403,6 +418,7 @@ Tahapan yang dilakukan mengikuti 6 fase terstandarisasi <strong>CRISP-DM</strong
 </div>
 </div>
 </div>
+</section>
 </section>
 </section>
 <hr class="docutils" />
@@ -882,7 +898,11 @@ Deployment Ready: Model Deep Learning CNN siap melayani inferensi di backend Fla
   <nav class="bd-toc-nav page-toc">
     <ul class="visible nav section-nav flex-column">
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#">Proyek Sains Data — Klasifikasi Audio (Human Voice vs AI Generated Voice)</a><ul class="visible nav section-nav flex-column">
-<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementasi-metodologi-crisp-dm-cross-industry-standard-process-for-data-mining">Implementasi Metodologi CRISP-DM (<em>Cross-Industry Standard Process for Data Mining</em>)</a></li>
+<li class="toc-h2 nav-item toc-entry"><a class="reference internal nav-link" href="#implementasi-metodologi-crisp-dm-cross-industry-standard-process-for-data-mining">Implementasi Metodologi CRISP-DM (<em>Cross-Industry Standard Process for Data Mining</em>)</a><ul class="visible nav section-nav flex-column">
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#anggota-kelompok-4">Anggota Kelompok 4:</a></li>
+<li class="toc-h3 nav-item toc-entry"><a class="reference internal nav-link" href="#ringkasan-eksekutif-proyek">Ringkasan Eksekutif Proyek</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toc-h1 nav-item toc-entry"><a class="reference internal nav-link" href="#tahap-1-business-understanding-pemahaman-bisnis-permasalahan">Tahap 1: <em>Business Understanding</em> (Pemahaman Bisnis &amp; Permasalahan)</a><ul class="visible nav section-nav flex-column">
