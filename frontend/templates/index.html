@@ -41,10 +41,10 @@
 
     <main class="max-w-6xl mx-auto px-4 py-6 space-y-6">
 
-        <!-- 3 Metode Input Audio (Bukan Streaming/Panggilan Real-Time) -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+        <!-- 2 Metode Pengujian Audio -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-            <!-- Panel 1: Unggah File Audio (Utama) -->
+            <!-- Panel 1: Unggah File Audio -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg hover:border-slate-700 transition">
                 <div>
                     <div class="flex items-center justify-between mb-2">
@@ -53,9 +53,9 @@
                             1. Unggah File Audio
                         </span>
                     </div>
-                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Unggah Berkas Rekaman</h2>
+                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Unggah Berkas Suara</h2>
                     <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-                        Pilih file audio format <code class="text-blue-300">.wav</code> atau <code class="text-blue-300">.mp3</code> (durasi 5–30 detik). Sistem akan otomatis melakukan preprocessing dan klasifikasi.
+                        Pilih file audio format <code class="text-blue-300">.wav</code> atau <code class="text-blue-300">.mp3</code>. Sistem otomatis melakukan ekstraksi fitur akustik dan klasifikasi CNN.
                     </p>
 
                     <label class="block">
@@ -72,64 +72,31 @@
                 </button>
             </div>
 
-            <!-- Panel 2: Rekam Suara Langsung (Mikrofon) -->
-            <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg hover:border-slate-700 transition">
-                <div>
-                    <div class="flex items-center justify-between mb-2">
-                        <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-emerald-400 bg-emerald-950/60 border border-emerald-800/70 px-2.5 py-0.5 rounded">
-                            <i data-lucide="mic" class="w-3.5 h-3.5"></i>
-                            2. Input Mikrofon
-                        </span>
-                        <span id="micTimer" class="font-mono text-xs text-slate-400">00.0s</span>
-                    </div>
-                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Rekam Suara Pengguna</h2>
-                    <p class="text-xs text-slate-400 mb-4 leading-relaxed">
-                        Rekam suara Anda minimal <strong>5 detik</strong>. Browser otomatis mengonversi ke WAV 16.000 Hz sebelum dikirim ke pipeline klasifikasi.
-                    </p>
-
-                    <div class="flex gap-2 mb-3">
-                        <button id="btnStartRec" onclick="mulaiRekam()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-2.5 px-3 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-1.5">
-                            <i data-lucide="mic" class="w-4 h-4"></i>
-                            Mulai Rekam
-                        </button>
-                        <button id="btnStopRec" onclick="berhentiRekam()" disabled class="flex-1 bg-rose-600 hover:bg-rose-500 disabled:opacity-40 text-white font-semibold py-2.5 px-3 rounded-lg transition text-xs md:text-sm flex items-center justify-center gap-1.5">
-                            <i data-lucide="square" class="w-4 h-4"></i>
-                            Stop &amp; Analisis
-                        </button>
-                    </div>
-                    <p id="micStatus" class="text-xs text-slate-400 italic mb-2">Klik "Mulai Rekam" lalu berbicara selama minimal 5 detik.</p>
-                </div>
-
-                <div>
-                    <audio id="micAudioPreview" controls class="w-full h-9 hidden mt-2"></audio>
-                </div>
-            </div>
-
-            <!-- Panel 3: Uji Cepat Sampel Dataset -->
+            <!-- Panel 2: Uji Seluruh Sampel Dataset -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-5 flex flex-col justify-between shadow-lg hover:border-slate-700 transition">
                 <div>
                     <div class="mb-2">
                         <span class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-amber-400 bg-amber-950/60 border border-amber-800/70 px-2.5 py-0.5 rounded">
                             <i data-lucide="folder-check" class="w-3.5 h-3.5"></i>
-                            3. Sampel Dataset
+                            2. Seluruh Sampel Dataset
                         </span>
                     </div>
-                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Cek Sampel Dataset</h2>
+                    <h2 class="text-base md:text-lg font-bold text-white mb-1">Uji Sampel Dataset Lengkap</h2>
                     <p class="text-xs text-slate-400 mb-3 leading-relaxed">
-                        Pilih sampel audio dari dataset (Human vs AI) untuk mendengarkan karakteristik suara dan memvalidasi ketepatan model.
+                        Tersedia total <strong>{{ sampel_asli|length + sampel_ai|length }} berkas audio</strong> ({{ sampel_asli|length }} Human Voice &amp; {{ sampel_ai|length }} AI Generated) untuk validasi langsung performa model CNN.
                     </p>
 
-                    <div class="grid grid-cols-2 gap-2 mb-2">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Kategori Audio:</label>
-                            <select id="selectKelas" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
-                                <option value="asli_human">Human Voice (0)</option>
-                                <option value="ai_manipulasi">AI Generated (1)</option>
+                            <label class="block text-xs text-slate-400 mb-1">Kategori Dataset:</label>
+                            <select id="selectKelas" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
+                                <option value="asli_human">Human Voice ({{ sampel_asli|length }} berkas)</option>
+                                <option value="ai_manipulasi">AI Generated ({{ sampel_ai|length }} berkas)</option>
                             </select>
                         </div>
                         <div>
-                            <label class="block text-xs text-slate-400 mb-1">Pilih Berkas:</label>
-                            <select id="selectFile" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-blue-500">
+                            <label class="block text-xs text-slate-400 mb-1">Pilih Berkas Audio:</label>
+                            <select id="selectFile" onchange="updateSamplePreview()" class="w-full bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-2 text-xs text-white focus:outline-none focus:border-amber-500">
                                 {% for f in sampel_asli %}
                                 <option value="{{ f }}">{{ f }}</option>
                                 {% endfor %}
@@ -340,124 +307,6 @@
                 player.src = URL.createObjectURL(fileInput.files[0]);
                 player.classList.remove('hidden');
             }
-        }
-
-        // ==============================================================
-        // PEREKAM AUDIO LANGSUNG (MIKROFON BROWSER -> WAV 16.000 Hz)
-        // ==============================================================
-        let audioCtx = null;
-        let mediaStream = null;
-        let scriptProcessor = null;
-        let audioBuffers = [];
-        let recStartTime = 0;
-        let timerInterval = null;
-
-        async function mulaiRekam() {
-            try {
-                mediaStream = await navigator.mediaDevices.getUserMedia({
-                    audio: {
-                        channelCount: 1,
-                        echoCancellation: true,
-                        noiseSuppression: true,
-                        autoGainControl: true
-                    }
-                });
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
-                const source = audioCtx.createMediaStreamSource(mediaStream);
-                scriptProcessor = audioCtx.createScriptProcessor(4096, 1, 1);
-                audioBuffers = [];
-
-                scriptProcessor.onaudioprocess = function(e) {
-                    const inputData = e.inputBuffer.getChannelData(0);
-                    audioBuffers.push(new Float32Array(inputData));
-                };
-
-                source.connect(scriptProcessor);
-                // Jangan sambungkan ke destination agar tidak terjadi feedback/statis ke speaker
-                const muteNode = audioCtx.createGain();
-                muteNode.gain.value = 0;
-                scriptProcessor.connect(muteNode);
-                muteNode.connect(audioCtx.destination);
-
-                recStartTime = Date.now();
-                document.getElementById('btnStartRec').disabled = true;
-                document.getElementById('btnStartRec').classList.add('opacity-40');
-                document.getElementById('btnStopRec').disabled = false;
-                document.getElementById('micStatus').textContent = 'Sedang merekam suara... Silakan berbicara minimal 5 detik.';
-                document.getElementById('micStatus').className = 'text-xs text-emerald-400 font-medium mb-2';
-
-                timerInterval = setInterval(() => {
-                    const elapsed = ((Date.now() - recStartTime) / 1000).toFixed(1);
-                    document.getElementById('micTimer').textContent = `${elapsed}s`;
-                }, 100);
-            } catch (err) {
-                tampilkanError('Gagal mengakses mikrofon: ' + err.message);
-            }
-        }
-
-        async function berhentiRekam() {
-            if (!audioCtx) return;
-            clearInterval(timerInterval);
-
-            scriptProcessor.disconnect();
-            mediaStream.getTracks().forEach(t => t.stop());
-            const sr = audioCtx.sampleRate;
-            await audioCtx.close();
-            audioCtx = null;
-
-            document.getElementById('btnStartRec').disabled = false;
-            document.getElementById('btnStartRec').classList.remove('opacity-40');
-            document.getElementById('btnStopRec').disabled = true;
-            document.getElementById('micStatus').textContent = 'Rekaman selesai! Mengirim berkas ke sistem klasifikasi...';
-            document.getElementById('micStatus').className = 'text-xs text-blue-400 font-medium mb-2';
-
-            // Gabungkan buffer audio
-            let totalLength = audioBuffers.reduce((acc, b) => acc + b.length, 0);
-            let merged = new Float32Array(totalLength);
-            let offset = 0;
-            for (let b of audioBuffers) {
-                merged.set(b, offset);
-                offset += b.length;
-            }
-
-            const wavBlob = encodeWAV(merged, sr);
-            const previewUrl = URL.createObjectURL(wavBlob);
-            const micPlayer = document.getElementById('micAudioPreview');
-            micPlayer.src = previewUrl;
-            micPlayer.classList.remove('hidden');
-
-            const formData = new FormData();
-            formData.append('audio_file', wavBlob, 'Rekaman_Mikrofon.wav');
-            formData.append('is_mic', 'true');
-            await kirimKeBackend(formData);
-        }
-
-        function encodeWAV(samples, sampleRate) {
-            const buffer = new ArrayBuffer(44 + samples.length * 2);
-            const view = new DataView(buffer);
-            const writeString = (offset, str) => {
-                for (let i = 0; i < str.length; i++) view.setUint8(offset + i, str.charCodeAt(i));
-            };
-            writeString(0, 'RIFF');
-            view.setUint32(4, 36 + samples.length * 2, true);
-            writeString(8, 'WAVE');
-            writeString(12, 'fmt ');
-            view.setUint32(16, 16, true);
-            view.setUint16(20, 1, true);
-            view.setUint16(22, 1, true);
-            view.setUint32(24, sampleRate, true);
-            view.setUint32(28, sampleRate * 2, true);
-            view.setUint16(32, 2, true);
-            view.setUint16(34, 16, true);
-            writeString(36, 'data');
-            view.setUint32(40, samples.length * 2, true);
-
-            let offset = 44;
-            for (let i = 0; i < samples.length; i++, offset += 2) {
-                let s = Math.max(-1, Math.min(1, samples[i]));
-                view.setInt16(offset, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
-            }
-            return new Blob([view], { type: 'audio/wav' });
         }
 
         // ==============================================================

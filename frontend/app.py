@@ -268,10 +268,9 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
 @app.route('/')
 def index():
     muat_atau_perbarui_model()
-    # Siapkan daftar contoh file dari dataset
-    sampel_asli = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'asli_human')) if f.endswith('.wav')])[:15]
-    sampel_ai = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'ai_manipulasi')) if f.endswith('.wav')])[:15]
-    # Sesuai poin 4 PROMT.md: tidak menampilkan akurasi/metrik model pada halaman pengujian
+    # Siapkan seluruh daftar file dari dataset tanpa pembatasan agar seluruh data uji dapat diakses
+    sampel_asli = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'asli_human')) if f.endswith('.wav')])
+    sampel_ai = sorted([f for f in os.listdir(os.path.join(DATA_DIR, 'ai_manipulasi')) if f.endswith('.wav')])
     return render_template(
         'index.html',
         sampel_asli=sampel_asli,
@@ -392,5 +391,5 @@ def predict():
 
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
+    port = int(os.environ.get('PORT', 2006))
     app.run(host='0.0.0.0', port=port, debug=False)
