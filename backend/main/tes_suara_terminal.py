@@ -14,7 +14,14 @@ if hasattr(sys.stdout, 'reconfigure'):
     sys.stdout.reconfigure(encoding='utf-8', errors='replace')
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-MODEL_PATH = os.path.join(BASE_DIR, 'model_voice_rf_5s.pkl')
+sys.path.insert(0, BASE_DIR)
+
+try:
+    from cnn_architecture import AudioCNN1D, CNNVoiceClassifier
+except ImportError:
+    pass
+
+MODEL_PATH = os.path.join(BASE_DIR, 'model_voice_cnn_5s.pkl')
 
 
 def ekstrak_fitur_segmen(y_seg, sr, f0_seg):

@@ -108,17 +108,15 @@ def ekstrak_fitur_segmen(y_seg, sr, f0_seg):
     return fitur
 
 
-def buat_visualisasi_prediksi(y_audio, sr, proba_segmen, nama_sumber):
-    """Membuat gambar visualisasi Matplotlib (Waveform, Mel-Spectrogram, & Confidence per Segmen)."""
-    fig, axes = plt.subplots(1, 3, figsize=(16, 4.2))
+def buat_visualisasi_prediksi(y_audio, sr, nama_sumber):
+    """Membuat visualisasi Matplotlib ringkas (Waveform & Mel-Spectrogram) untuk inferensi langsung."""
+    fig, axes = plt.subplots(1, 2, figsize=(12, 3.8))
     durasi_total = len(y_audio) / sr
     waktu = np.linspace(0, durasi_total, len(y_audio))
 
-    # Plot 1: Waveform & Batas Segmen 5 Detik
-    axes[0].plot(waktu, y_audio, color='#2563eb', alpha=0.8, linewidth=0.6)
-    for b in range(0, int(durasi_total) + 1, DURASI_SEGMEN):
-        axes[0].axvline(b, color='#dc2626', linestyle='--', linewidth=1.2)
-    axes[0].set_title(f'Waveform & Segmentasi 5 Detik ({nama_sumber})', fontweight='bold', fontsize=10)
+    # Plot 1: Waveform Sinyal Audio
+    axes[0].plot(waktu, y_audio, color='#2563eb', alpha=0.85, linewidth=0.7)
+    axes[0].set_title(f'Bentuk Gelombang Audio ({nama_sumber})', fontweight='bold', fontsize=10)
     axes[0].set_xlabel('Waktu (Detik)')
     axes[0].set_ylabel('Amplitudo')
     axes[0].set_xlim(0, durasi_total)
@@ -128,35 +126,21 @@ def buat_visualisasi_prediksi(y_audio, sr, proba_segmen, nama_sumber):
     S_mel = librosa.feature.melspectrogram(y=y_audio, sr=sr, n_mels=64)
     S_db = librosa.power_to_db(S_mel, ref=np.max)
     img = librosa.display.specshow(S_db, sr=sr, x_axis='time', y_axis='mel', ax=axes[1], cmap='magma')
-    axes[1].set_title('Mel-Spectrogram Suara', fontweight='bold', fontsize=10)
+    axes[1].set_title('Mel-Spectrogram Frekuensi', fontweight='bold', fontsize=10)
     axes[1].set_xlabel('Waktu (Detik)')
     axes[1].set_ylabel('Frekuensi (Hz)')
     fig.colorbar(img, ax=axes[1], format='%+2.0f dB')
 
-    # Plot 3: Confidence Score per Segmen 5 Detik
-    jml_seg = len(proba_segmen)
-    x_pos = np.arange(jml_seg)
-    seg_labels = [f'Seg {i+1}\n({i*5}-{(i+1)*5}s)' for i in range(jml_seg)]
-    axes[2].bar(x_pos - 0.18, proba_segmen[:, 0] * 100, width=0.35, color='#2563eb', label='Human Voice (0)')
-    axes[2].bar(x_pos + 0.18, proba_segmen[:, 1] * 100, width=0.35, color='#dc2626', label='AI Generated Voice (1)')
-    axes[2].set_xticks(x_pos)
-    axes[2].set_xticklabels(seg_labels, fontsize=8)
-    axes[2].set_ylim(0, 115)
-    axes[2].set_ylabel('Confidence (%)')
-    axes[2].set_title('Confidence Score per Segmen 5 Detik', fontweight='bold', fontsize=10)
-    axes[2].legend(loc='upper right', fontsize=8)
-    axes[2].grid(axis='y', linestyle='--', alpha=0.3)
-
     plt.tight_layout()
     buf = io.BytesIO()
-    plt.savefig(buf, format='png', dpi=120)
+    plt.savefig(buf, format='png', dpi=110)
     plt.close(fig)
     buf.seek(0)
     return base64.b64encode(buf.read()).decode('utf-8')
 
 
 def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False):
-    """Memproses sinyal audio, membagi per segmen 5 detik, dan menjalankan inferensi model."""
+    """Menjalankan inferensi langsung model Deep Learning CNN tanpa looping segmen berulang."""
     if y_raw.ndim > 1:
         y_raw = np.mean(y_raw, axis=1)
     y_raw = y_raw.astype(np.float32)
@@ -179,69 +163,71 @@ def analisis_audio_array(y_raw, sr_in, nama_sumber='Rekaman Suara', is_mic=False
     sampel_5s = DURASI_SEGMEN * TARGET_SR  # 80.000 sampel per 5 detik
     durasi_asli = round(len(y_audio) / TARGET_SR, 2)
 
-    # Jika durasi kurang dari 5 detik, ulangi/pad hingga genap 5 detik
-    if len(y_audio) < sampel_5s:
+    # Ambil audio representatif 5 detik secara langsung dengan mendeteksi suara aktif
+    if len(y_audio) > sampel_5s:
+        win = int(0.25 * TARGET_SR)  # 4000 sampel per 0.25 detik
+        energi_frame = np.array([np.mean(y_audio[i:i+win]**2) for i in range(0, len(y_audio) - win, win // 2)])
+        ambang = max(1e-5, float(np.percentile(energi_frame, 30)))
+        idx_aktif = np.where(energi_frame > ambang)[0]
+        if len(idx_aktif) > 0:
+            start_idx = max(0, int(idx_aktif[0] * (win // 2)))
+            if start_idx + sampel_5s <= len(y_audio):
+                y_5s = y_audio[start_idx : start_idx + sampel_5s]
+            else:
+                y_5s = y_audio[-sampel_5s:]
+        else:
+            y_5s = y_audio[:sampel_5s]
+    elif len(y_audio) < sampel_5s:
         ulang = int(np.ceil(sampel_5s / max(1, len(y_audio))))
-        y_audio = np.tile(y_audio, ulang)[:sampel_5s]
+        y_5s = np.tile(y_audio, ulang)[:sampel_5s]
+    else:
+        y_5s = y_audio
 
-    jumlah_segmen = max(1, len(y_audio) // sampel_5s)
-    y_potong = y_audio[:jumlah_segmen * sampel_5s]
+    # Ekstraksi cepat 20 fitur akustik terpilih dalam 1 kali proses (tanpa segment looping)
+    f0_seg = librosa.yin(y_5s, fmin=60, fmax=360, sr=TARGET_SR, hop_length=1024)
+    d_fitur = ekstrak_fitur_segmen(y_5s, TARGET_SR, f0_seg)
+    fitur_vec = [d_fitur[k] for k in kolom_fitur]
 
-    f0_all = librosa.yin(y_potong, fmin=50, fmax=400, sr=TARGET_SR)
-    total_f0 = len(f0_all)
+    # Inferensi langsung model Deep Learning CNN
+    X_input = scaler.transform(np.array([fitur_vec]))
+    proba = cnn_model.predict_proba(X_input)[0]  # shape: (2,)
+    pred_label = int(np.argmax(proba))
 
-    list_fitur_df = []
-    list_fitur_dict = []
+    prob_asli = round(float(proba[0]) * 100, 2)
+    prob_ai = round(float(proba[1]) * 100, 2)
 
-    for idx in range(jumlah_segmen):
-        y_seg = y_potong[idx * sampel_5s : (idx + 1) * sampel_5s]
-        f0_seg = f0_all[int(idx * total_f0 / jumlah_segmen) : int((idx + 1) * total_f0 / jumlah_segmen)]
-        d_fitur = ekstrak_fitur_segmen(y_seg, TARGET_SR, f0_seg)
-        list_fitur_dict.append(d_fitur)
-        # Ambil hanya fitur yang terpilih oleh model (Top-20 Features)
-        list_fitur_df.append([d_fitur[k] for k in kolom_fitur])
-
-    X_input = scaler.transform(np.array(list_fitur_df))
-    proba_segmen = cnn_model.predict_proba(X_input)  # shape: (jumlah_segmen, 2)
-    mean_proba = np.mean(proba_segmen, axis=0)
-    pred_label = int(np.argmax(mean_proba))
-
-    rincian_segmen = []
-    for idx, prob in enumerate(proba_segmen):
-        lbl_seg = int(np.argmax(prob))
-        rincian_segmen.append({
-            'segmen_ke': idx + 1,
-            'rentang_waktu': f'{idx*5} - {(idx+1)*5} detik',
-            'prediksi_label': lbl_seg,
-            'prediksi_teks': 'Human Voice' if lbl_seg == 0 else 'AI Generated Voice',
-            'prob_asli': round(float(prob[0]) * 100, 2),
-            'prob_ai': round(float(prob[1]) * 100, 2)
-        })
+    rincian_segmen = [{
+        'segmen_ke': 1,
+        'rentang_waktu': f'0 - {min(durasi_asli, 5.0)} detik',
+        'prediksi_label': pred_label,
+        'prediksi_teks': 'Human Voice' if pred_label == 0 else 'AI Generated Voice',
+        'prob_asli': prob_asli,
+        'prob_ai': prob_ai
+    }]
 
     # Rata-rata fitur penting untuk ditampilkan di tabel perbandingan
     fitur_utama = [f for f in ['mfcc_8_mean', 'mfcc_11_mean', 'mfcc_7_mean', 'mfcc_8_std', 'mfcc_4_mean', 'skewness', 'f0_std'] if f in kolom_fitur]
     perbandingan_fitur = []
     for nf in fitur_utama:
-        nilai_input = float(np.mean([d[nf] for d in list_fitur_dict]))
         perbandingan_fitur.append({
             'nama_fitur': nf,
-            'nilai_suara_uji': round(nilai_input, 4),
+            'nilai_suara_uji': round(float(d_fitur[nf]), 4),
             'rata2_asli': round(float(MEAN_ASLI.get(nf, 0.0)), 4),
             'rata2_ai': round(float(MEAN_AI.get(nf, 0.0)), 4)
         })
 
-    plot_base64 = buat_visualisasi_prediksi(y_potong, TARGET_SR, proba_segmen, nama_sumber)
+    plot_base64 = buat_visualisasi_prediksi(y_5s, TARGET_SR, nama_sumber)
 
     return {
         'status': 'success',
         'nama_sumber': nama_sumber,
         'durasi_detik': durasi_asli,
-        'jumlah_segmen_5s': jumlah_segmen,
+        'jumlah_segmen_5s': 1,
         'prediksi_label': pred_label,
         'prediksi_nama': LABEL_MAP[pred_label],
-        'confidence_utama': round(float(mean_proba[pred_label]) * 100, 2),
-        'prob_asli': round(float(mean_proba[0]) * 100, 2),
-        'prob_ai': round(float(mean_proba[1]) * 100, 2),
+        'confidence_utama': round(float(proba[pred_label]) * 100, 2),
+        'prob_asli': prob_asli,
+        'prob_ai': prob_ai,
         'rincian_segmen': rincian_segmen,
         'perbandingan_fitur': perbandingan_fitur,
         'plot_base64': plot_base64
@@ -278,73 +264,61 @@ def predict():
         sample_kelas = request.form.get('sample_kelas')
         sample_file = request.form.get('sample_file')
         if sample_kelas and sample_file:
-            # Cari apakah fitur sampel sudah tersimpan di dataset CSV hasil seleksi fitur
+            wav_path = os.path.join(DATA_DIR, sample_kelas, sample_file)
+            if not os.path.exists(wav_path):
+                return jsonify({'status': 'error', 'message': 'File sampel tidak ditemukan.'}), 404
+
+            # Jika sampel sudah ada dalam dataset seleksi fitur, langsung prediksi instan
             if DF_FITUR_PRECOMPUTED is not None:
                 sub = DF_FITUR_PRECOMPUTED[
                     (DF_FITUR_PRECOMPUTED['kelas'] == sample_kelas) &
                     (DF_FITUR_PRECOMPUTED['file_induk'] == sample_file)
                 ]
                 if len(sub) > 0:
-                    # Langsung tebak menggunakan model CNN tanpa perlu ekstraksi atau segmentasi ulang
-                    X_input = sub[kolom_fitur].values
-                    X_scaled = scaler.transform(X_input)
-                    proba_segmen = cnn_model.predict_proba(X_scaled)  # shape: (jumlah_segmen, 2)
-                    mean_proba = np.mean(proba_segmen, axis=0)
-                    pred_label = int(np.argmax(mean_proba))
+                    fitur_vec = sub[kolom_fitur].mean().values
+                    X_input = scaler.transform(np.array([fitur_vec]))
+                    proba = cnn_model.predict_proba(X_input)[0]
+                    pred_label = int(np.argmax(proba))
+                    prob_asli = round(float(proba[0]) * 100, 2)
+                    prob_ai = round(float(proba[1]) * 100, 2)
 
-                    rincian_segmen = []
-                    for idx, prob in enumerate(proba_segmen):
-                        lbl_seg = int(np.argmax(prob))
-                        rincian_segmen.append({
-                            'segmen_ke': idx + 1,
-                            'rentang_waktu': f'{idx*5} - {(idx+1)*5} detik',
-                            'prediksi_label': lbl_seg,
-                            'prediksi_teks': 'Human Voice' if lbl_seg == 0 else 'AI Generated Voice',
-                            'prob_asli': round(float(prob[0]) * 100, 2),
-                            'prob_ai': round(float(prob[1]) * 100, 2)
-                        })
+                    y_raw, sr_in = sf.read(wav_path, dtype='float32')
+                    durasi_total = round(len(y_raw) / sr_in, 2)
+                    plot_base64 = buat_visualisasi_prediksi(y_raw[:sr_in * DURASI_SEGMEN], sr_in, f'{sample_kelas}/{sample_file}')
 
-                    # Nilai fitur perbandingan
                     fitur_utama = [f for f in ['mfcc_8_mean', 'mfcc_11_mean', 'mfcc_7_mean', 'mfcc_8_std', 'mfcc_4_mean', 'skewness', 'f0_std'] if f in kolom_fitur]
                     perbandingan_fitur = []
                     for nf in fitur_utama:
-                        nilai_input = float(sub[nf].mean())
                         perbandingan_fitur.append({
                             'nama_fitur': nf,
-                            'nilai_suara_uji': round(nilai_input, 4),
+                            'nilai_suara_uji': round(float(fitur_vec[kolom_fitur.index(nf)]), 4),
                             'rata2_asli': round(float(MEAN_ASLI.get(nf, 0.0)), 4),
                             'rata2_ai': round(float(MEAN_AI.get(nf, 0.0)), 4)
                         })
-
-                    # Visualisasi audio cepat
-                    wav_path = os.path.join(DATA_DIR, sample_kelas, sample_file)
-                    if os.path.exists(wav_path):
-                        y_raw, sr_in = sf.read(wav_path, dtype='float32')
-                        durasi_total = round(len(y_raw) / sr_in, 2)
-                        plot_base64 = buat_visualisasi_prediksi(y_raw, sr_in, proba_segmen, f'{sample_kelas}/{sample_file}')
-                    else:
-                        durasi_total = float(len(sub) * 5)
-                        plot_base64 = ''
 
                     return jsonify({
                         'status': 'success',
                         'nama_sumber': f'{sample_kelas}/{sample_file}',
                         'durasi_detik': durasi_total,
-                        'jumlah_segmen_5s': len(sub),
+                        'jumlah_segmen_5s': 1,
                         'prediksi_label': pred_label,
                         'prediksi_nama': LABEL_MAP[pred_label],
-                        'confidence_utama': round(float(mean_proba[pred_label]) * 100, 2),
-                        'prob_asli': round(float(mean_proba[0]) * 100, 2),
-                        'prob_ai': round(float(mean_proba[1]) * 100, 2),
-                        'rincian_segmen': rincian_segmen,
+                        'confidence_utama': round(float(proba[pred_label]) * 100, 2),
+                        'prob_asli': prob_asli,
+                        'prob_ai': prob_ai,
+                        'rincian_segmen': [{
+                            'segmen_ke': 1,
+                            'rentang_waktu': f'0 - {min(durasi_total, 5.0)} detik',
+                            'prediksi_label': pred_label,
+                            'prediksi_teks': 'Human Voice' if pred_label == 0 else 'AI Generated Voice',
+                            'prob_asli': prob_asli,
+                            'prob_ai': prob_ai
+                        }],
                         'perbandingan_fitur': perbandingan_fitur,
                         'plot_base64': plot_base64
                     })
 
-            # Jika file sampel tidak ada di CSV precomputed, proses dari file fisik
-            wav_path = os.path.join(DATA_DIR, sample_kelas, sample_file)
-            if not os.path.exists(wav_path):
-                return jsonify({'status': 'error', 'message': 'File sampel tidak ditemukan.'}), 404
+            # Jika file fisik lain, proses langsung tanpa segment looping
             y_raw, sr_in = sf.read(wav_path, dtype='float32')
             hasil = analisis_audio_array(
                 y_raw, sr_in,

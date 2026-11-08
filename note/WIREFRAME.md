@@ -57,27 +57,20 @@ flowchart LR
 |  +---------------------------------+  +---------------------------------+  +------------------+  |
 |                                                                                                  |
 |  +--------------------------------------------------------------------------------------------+  |
-|  | HASIL DETEKSI AKHIR:                                                                        |  |
+|  | HASIL DETEKSI LANGSUNG (DEEP LEARNING CNN):                                                |  |
 |  |                                                                                            |  |
-|  |   [ BADGE STATUS: HUMAN VOICE / AI GENERATED VOICE ]     Confidence Score: 98.2%           |  |
-|  |   Informasi Berkas: audio_sample.wav | Durasi: 15.0s | Dianalisis dalam 3 Segmen @ 5s       |  |
+|  |   [ BADGE STATUS: HUMAN VOICE / AI GENERATED VOICE ]     Confidence Score: 100.0%          |  |
+|  |   Informasi Berkas: audio_sample.wav | Durasi: 15.0s | Inferensi Langsung Model CNN         |  |
 |  |                                                                                            |  |
-|  |   Probabilitas Manusia Asli: [=========================] 98.2%                             |  |
-|  |   Probabilitas Manipulasi AI: [==                       ] 1.8%                             |  |
+|  |   Probabilitas Manusia Asli: [=========================] 100.0%                            |  |
+|  |   Probabilitas Manipulasi AI: [                         ] 0.0%                             |  |
 |  |                                                                                            |  |
-|  |   [ Visualisasi: Waveform, Mel-Spectrogram, & Keyakinan per Segmen 5 Detik ]               |  |
+|  |   [ Visualisasi: Waveform & Mel-Spectrogram Audio ]                                        |  |
 |  |   +------------------------------------------------------------------------------------+   |  |
-|  |   | [ Waveform 5s ]        | [ Mel-Spectrogram 16 kHz ]   | [ Bar Segmen 1, 2, 3... ]  |   |  |
+|  |   | [ Waveform Amplitudo Sinyal ]          | [ Mel-Spectrogram Frekuensi Audio ]       |   |  |
 |  |   +------------------------------------------------------------------------------------+   |  |
 |  |                                                                                            |  |
-|  |   [ Tabel Rincian Prediksi per Segmen 5 Detik ]                                            |  |
-|  |   +------------+---------------+----------------------+---------------+-----------------+  |  |
-|  |   | Segmen     | Rentang Waktu | Prediksi Label       | Prob. Asli    | Prob. AI        |  |  |
-|  |   +------------+---------------+----------------------+---------------+-----------------+  |  |
-|  |   | Segmen 1   | 0 - 5 detik   | Human Voice          | 97.4%         | 2.6%            |  |  |
-|  |   | Segmen 2   | 5 - 10 detik  | Human Voice          | 99.1%         | 0.9%            |  |  |
-|  |   | Segmen 3   | 10 - 15 detik | Human Voice          | 98.0%         | 2.0%            |  |  |
-|  |   +------------+---------------+----------------------+---------------+-----------------+  |  |
+|  |   [ Tabel Komparasi Nilai Fitur Akustik Terpenting vs Referensi ]                          |  |
 |  +--------------------------------------------------------------------------------------------+  |
 +--------------------------------------------------------------------------------------------------+
 ```
