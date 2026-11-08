@@ -232,18 +232,18 @@
                 </div>
             </div>
 
-            <!-- Tabel Analisis Rincian Segmen 5 Detik -->
+            <!-- Tabel Hasil Inferensi Langsung Model CNN -->
             <div class="bg-slate-900 border border-slate-800 rounded-xl p-6 shadow-xl">
                 <h3 class="text-sm md:text-base font-bold text-white mb-3 flex items-center gap-2">
-                    <i data-lucide="list" class="w-4 h-4 text-emerald-400"></i>
-                    Rincian Klasifikasi per Segmen 5 Detik
+                    <i data-lucide="zap" class="w-4 h-4 text-emerald-400"></i>
+                    Hasil Inferensi Langsung Model Deep Learning CNN
                 </h3>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead>
                             <tr class="border-b border-slate-800 text-slate-400 font-semibold uppercase tracking-wider">
-                                <th class="py-2.5 px-3">Segmen</th>
-                                <th class="py-2.5 px-3">Rentang Waktu</th>
+                                <th class="py-2.5 px-3">Arsitektur Model</th>
+                                <th class="py-2.5 px-3">Rentang Sampel</th>
                                 <th class="py-2.5 px-3">Hasil Prediksi</th>
                                 <th class="py-2.5 px-3 text-right">Prob. Human</th>
                                 <th class="py-2.5 px-3 text-right">Prob. AI</th>
@@ -532,7 +532,7 @@
 
             confEl.textContent = data.confidence_utama + '%';
             document.getElementById('resMetaInfoText').textContent =
-                `Berkas: ${data.nama_sumber} | Durasi: ${data.durasi_detik} detik | Dianalisis dalam ${data.jumlah_segmen_5s} segmen @ 5 detik`;
+                `Berkas: ${data.nama_sumber} | Durasi: ${data.durasi_detik} detik | Inferensi Langsung Model Deep Learning CNN`;
 
             document.getElementById('barTextAsli').textContent = data.prob_asli + '%';
             document.getElementById('barFillAsli').style.width = data.prob_asli + '%';
@@ -541,16 +541,16 @@
 
             document.getElementById('resPlotImg').src = 'data:image/png;base64,' + data.plot_base64;
 
-            // Render rincian tabel segmen
+            // Render hasil inferensi langsung
             const tbodySeg = document.getElementById('tbodySegmen');
             tbodySeg.innerHTML = '';
             data.rincian_segmen.forEach(s => {
                 const badge = s.prediksi_label === 0
                     ? `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-blue-950 text-blue-300 border border-blue-800 text-xs font-semibold"><i data-lucide="user" class="w-3.5 h-3.5"></i> Human Voice</span>`
-                    : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-950 text-rose-300 border border-rose-800 text-xs font-semibold"><i data-lucide="cpu" class="w-3.5 h-3.5"></i> AI Generated</span>`;
+                    : `<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-rose-950 text-rose-300 border border-rose-800 text-xs font-semibold"><i data-lucide="cpu" class="w-3.5 h-3.5"></i> AI Generated Voice</span>`;
                 tbodySeg.innerHTML += `
                     <tr class="hover:bg-slate-800/40 transition">
-                        <td class="py-2.5 px-3 font-semibold text-slate-200">Segmen ${s.segmen_ke}</td>
+                        <td class="py-2.5 px-3 font-semibold text-slate-200">AudioCNN1D (Conv1D)</td>
                         <td class="py-2.5 px-3 text-slate-400">${s.rentang_waktu}</td>
                         <td class="py-2.5 px-3">${badge}</td>
                         <td class="py-2.5 px-3 text-right font-mono text-blue-300">${s.prob_asli}%</td>

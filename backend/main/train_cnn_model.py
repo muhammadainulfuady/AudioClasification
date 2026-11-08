@@ -72,18 +72,19 @@ if __name__ == '__main__':
         'durasi_segmen': 5
     }
 
-    os.makedirs('uas/AudioClasification/backend/main', exist_ok=True)
-    os.makedirs('uas/AudioClasification/web-statis-voice-detection', exist_ok=True)
+    BASE_PROJ = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    os.makedirs(os.path.join(BASE_PROJ, 'backend', 'main'), exist_ok=True)
+    os.makedirs(os.path.join(BASE_PROJ, 'web-statis-voice-detection'), exist_ok=True)
 
     pkl_targets = [
-        'backend/main/model_voice_cnn_5s.pkl',
-        'web-statis-voice-detection/model_voice_cnn_5s.pkl'
+        os.path.join(BASE_PROJ, 'backend', 'main', 'model_voice_cnn_5s.pkl'),
+        os.path.join(BASE_PROJ, 'web-statis-voice-detection', 'model_voice_cnn_5s.pkl')
     ]
 
     for p in pkl_targets:
         joblib.dump(paket_cnn, p)
         print(f'Exported: {p}')
 
-    torch.save(cnn.model.state_dict(), 'uas/AudioClasification/backend/main/model_voice_cnn_5s.pt')
-    torch.save(cnn.model.state_dict(), 'uas/AudioClasification/web-statis-voice-detection/model_voice_cnn_5s.pt')
+    torch.save(cnn.model.state_dict(), os.path.join(BASE_PROJ, 'backend', 'main', 'model_voice_cnn_5s.pt'))
+    torch.save(cnn.model.state_dict(), os.path.join(BASE_PROJ, 'web-statis-voice-detection', 'model_voice_cnn_5s.pt'))
     print('Saved PyTorch state dicts (.pt)!')
