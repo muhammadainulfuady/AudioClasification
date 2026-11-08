@@ -23,7 +23,7 @@ Aplikasi telah dikonfigurasi penuh agar dapat langsung dijalankan hanya dengan *
 
 ### 1. Kloning Repository
 ```bash
-git clone https://github.com/mukhlisin24/AudioClasification.git
+git clone https://github.com/muhammadainulfuady/AudioClasification.git
 cd AudioClasification
 ```
 
@@ -31,14 +31,14 @@ cd AudioClasification
 ```bash
 docker compose up --build
 ```
-> Kontainer akan otomatis mengunduh dependency sistem Linux (`libsndfile1`, `ffmpeg`), menginstal PyTorch CPU yang ringan, dan menyalakan server web Flask pada port `5000`.
+> Kontainer akan otomatis mengunduh dependency sistem Linux (`libsndfile1`, `ffmpeg`), menginstal PyTorch CPU yang ringan, dan menyalakan server web Flask pada port `2006`.
 
 ### 3. Akses Antarmuka Web
 Buka browser dan arahkan ke alamat:
-* **Lokal:** `http://localhost:5000`
-* **Server Lab (Proxmox):** `http://<IP_SERVER_LAB>:5000`
+* **Lokal:** `http://localhost:2006`
+* **Server Lab (Proxmox):** `http://<IP_SERVER_LAB>:2006`
 
-> 💡 **Informasi Port:** Port yang dibuka hanya **1 port saja**, yaitu port `5000` (`5000:5000`).
+> **Informasi Port:** Port yang dibuka hanya **1 port saja**, yaitu port `2006` (`2006:2006`) agar tidak bentrok dengan kelompok lain.
 
 Untuk menghentikan kontainer:
 ```bash
@@ -47,7 +47,7 @@ docker compose down
 
 ---
 
-## 💻 Panduan Menjalankan Secara Lokal (Tanpa Docker)
+## Panduan Menjalankan Secara Lokal (Tanpa Docker)
 
 Jika ingin menjalankan aplikasi secara langsung di Python lokal:
 
@@ -60,7 +60,7 @@ Jika ingin menjalankan aplikasi secara langsung di Python lokal:
    ```bash
    python frontend/app.py
    ```
-4. Buka browser di `http://127.0.0.1:5000`.
+4. Buka browser di `http://127.0.0.1:2006`.
 
 ---
 
